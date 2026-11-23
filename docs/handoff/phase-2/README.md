@@ -1,5 +1,8 @@
 # RADAR — Phase 2 Handoff Package
 
+> **Update after PR #3 (merged `8372f91`, doc refresh in Phase 3 Step 0):** the repo now has a `@main` app (`RADAR/App`), a temporary Layout Lab, `project.yml` + `Config/*.xcconfig`, and Neon backend code. **Still true: nothing has been compiled or run.** Where this file says otherwise, the update notes below win; the original text is kept as the Phase 2 record.
+
+
 **Phase:** 02 — Design artifact → production SwiftUI (native iOS)
 **Written:** 2026-11-23, from an inspection of the actual repository and git state
 **Repository:** https://github.com/Rashica07/RADAR (private) · **Default branch:** `main` @ `eecc676`
@@ -9,8 +12,8 @@
 
 ## Read this first — three facts
 
-1. **Nothing in this repository has been compiled, run, or tested.** The environment that did this work is Linux with no Swift toolchain and no Xcode. The 29 XCTest methods exist but have never executed. Every "works" claim in these documents is tagged `[VERIFIED]`, `[UNVERIFIED]`, or `[NOT DONE]` — trust the tags.
-2. **This is a foundation, not an app.** There is no Xcode project, no `@main` entry point, no screens, no player, no CI. What exists is the design system's brand/theme/icon layer, the data + service layer, the glitch→clean logo system, the alternate-icon feature and its remote flag, and tests for those.
+1. **Nothing in this repository has been compiled, run, or tested.** The environment that did this work is Linux with no Swift toolchain and no Xcode. The 50 XCTest methods (29 from Phase 2, 21 added by PR #3) exist but have never executed. Every "works" claim in these documents is tagged `[VERIFIED]`, `[UNVERIFIED]`, or `[NOT DONE]` — trust the tags.
+2. **This is a foundation, not an app.** *(Updated: PR #3 added a `@main` app showing a temporary Layout Lab, and `project.yml`/`Config/*.xcconfig` — an Xcode project is generated with XcodeGen but has never been generated.)* There are still no real screens, no player, no CI. What exists is the design system's brand/theme/icon layer, the data + service layer, the glitch→clean logo system, the alternate-icon feature and its remote flag, and tests for those.
 3. **PR #1 (a work-in-progress, never compiled) is already merged into `main`.** `main` therefore contains uncompiled code, and PR #1's description is stale. This handoff is committed on the same branch name restarted from the merged `main`.
 
 ---
@@ -27,12 +30,12 @@
 | Brand: symbol + wordmark (v2 trace) | Done (placeholder) | `[VERIFIED]` IoU vs sheet: symbol 0.957, wordmark 0.884 |
 | Glitch spec + renderer + reveal + splash view | Written | JS twin `[VERIFIED]`; Swift `[UNVERIFIED]`; **splash not wired into any app** |
 | Glitch alternate app icon (art) | Done | `[VERIFIED]` rendered + eyeballed. `[UNVERIFIED]` on device |
-| Feature flags + icon picker | Written | `[UNVERIFIED]`; **no backend exists, `refresh()` is never called, picker not mounted** |
+| Feature flags + icon picker | Written | `[UNVERIFIED]`; **no flags backend exists (the Neon backend has no flags endpoint); `refresh()` is now called by `RootView` and the picker is mounted only in the DEBUG-only Layout Lab** |
 | Design-system components (rows, tiles, tabs, artwork, FX…) | **Not started** | — |
 | Screens (Discover, Trending, Search, Library, Settings, details) | **Not started** | — |
 | Player (queue, mini/expanded, AVFoundation, Now Playing) | **Not started** | — |
 | Local audio *playback* | **Not started** (import service exists) | — |
-| Xcode project, `@main`, Info.plist, CI | **Not started** | — |
+| Xcode project, `@main`, Info.plist, CI | `@main` + `project.yml` + xcconfig written (PR #3), **never generated or built**; CI **not started** | — |
 | Screenshot comparison vs artifact | **Not started** | reference shots exist (see zip `reference/`) |
 
 ## Reading order

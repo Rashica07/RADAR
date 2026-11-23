@@ -1,8 +1,11 @@
 # IMPLEMENTATION
 
+> **Update after PR #3 (merged `8372f91`, doc refresh in Phase 3 Step 0):** the repo now has a `@main` app (`RADAR/App`), a temporary Layout Lab, `project.yml` + `Config/*.xcconfig`, and Neon backend code. **Still true: nothing has been compiled or run.** Where this file says otherwise, the update notes below win; the original text is kept as the Phase 2 record.
+
+
 What was built in Phase 2, in the order it was built. Tags: `[VERIFIED]` executed/observed · `[UNVERIFIED]` written, never compiled/run · `[NOT DONE]` · `[ASSUMPTION]`.
 
-Totals (from `wc -l`): **3,257 lines of app Swift** in 24 files (3,563 lines in 27 files including tests), 238 lines of JS and 26 of Python in `tools/`. The largest Swift file, `RadarIconPaths.swift` (693 lines), is generated.
+Totals at the end of Phase 2 (from `wc -l`; the repo is now 4,482 Swift lines in 36 files incl. tests after PR #3): **3,257 lines of app Swift** in 24 files (3,563 lines in 27 files including tests), 238 lines of JS and 26 of Python in `tools/`. The largest Swift file, `RadarIconPaths.swift` (693 lines), is generated.
 
 ---
 

@@ -40,7 +40,7 @@ flips a flag.
 ## Backend (Supabase) — not created yet
 
 No backend exists. Until `RADARFlagsURL` and `RADARFlagsAnonKey` are set, every flag is off
-and Settings → Design review controls lets you override them locally.
+and the (DEBUG-only) Layout Lab's design-review controls let you override them locally.
 
 ```sql
 create table public.feature_flags (
@@ -69,8 +69,7 @@ update public.feature_flags set enabled = true,  updated_at = now() where key = 
 update public.feature_flags set enabled = false, updated_at = now() where key = 'glitch_app_icon';
 ```
 
-Or flip the row in the Supabase Table Editor. The app picks the change up on the next
-launch or foreground (at most every five minutes).
+Or flip the row in the Supabase Table Editor. The app is wired to pick the change up on launch and foreground (at most every five minutes) — written, not yet run. Note: the app's real backend is Neon, which has no flags endpoint yet; see `docs/handoff/phase-2/FEATURE_FLAGS.md`.
 
 The project URL and the publishable (anon) key are public by design. Never put a
 `service_role` key in the app. Set them in Info.plist as `RADARFlagsURL`

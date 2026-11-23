@@ -45,7 +45,9 @@ struct LayoutLabView: View {
                 stateProbes
                 availability
                 brand
+                #if DEBUG
                 debugControls
+                #endif
             }
             .padding(.horizontal, RadarLayoutProfile.gutter)
             .padding(.vertical, 24)
@@ -157,6 +159,9 @@ struct LayoutLabView: View {
         }
     }
 
+    #if DEBUG
+    /// Design-review controls (icon picker + local flag overrides). Compiled out of release builds so
+    /// no user can unlock a flagged feature locally.
     private var debugControls: some View {
         VStack(alignment: .leading, spacing: 30) {
             AppIconPickerSection()
@@ -165,6 +170,7 @@ struct LayoutLabView: View {
             }
         }
     }
+    #endif
 
     // MARK: Helpers
 

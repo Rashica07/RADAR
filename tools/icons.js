@@ -1,4 +1,4 @@
-const fs=require('fs'); const svgpath=require('./npm/node_modules/svgpath');
+const fs=require('fs'); const svgpath=require(require('fs').existsSync(require('path').join(__dirname,'npm/node_modules/svgpath'))?'./npm/node_modules/svgpath':'svgpath');
 const icons=JSON.parse(fs.readFileSync(process.argv[2]));
 const f=n=>{const v=Math.round(n*1000)/1000; return Number.isInteger(v)?v.toFixed(1):String(v);};
 const camel=s=>s.replace(/-([a-z])/g,(_,c)=>c.toUpperCase());

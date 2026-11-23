@@ -1,6 +1,9 @@
 # TESTING
 
-**Bottom line: 0 of 29 XCTest methods have ever run. No Swift code has been compiled.** The only things actually executed in Phase 2 were Node/Python/shell/browser checks, listed in §1. Everything in §2 is *written, not run*.
+> **Update after PR #3 (merged `8372f91`, doc refresh in Phase 3 Step 0):** the repo now has a `@main` app (`RADAR/App`), a temporary Layout Lab, `project.yml` + `Config/*.xcconfig`, and Neon backend code. **Still true: nothing has been compiled or run.** Where this file says otherwise, the update notes below win; the original text is kept as the Phase 2 record.
+
+
+**Bottom line: 0 of 50 XCTest methods have ever run (29 Phase 2 + `RadarLayoutTests` 17 + `BackendConfigTests` 4 from PR #3). No Swift code has been compiled.** The only things actually executed in Phase 2 were Node/Python/shell/browser checks, listed in §1. Everything in §2 is *written, not run*.
 
 Tags: `[VERIFIED]` = an executed command produced the cited result · `[UNVERIFIED]` = not executed · `[NOT DONE]`.
 

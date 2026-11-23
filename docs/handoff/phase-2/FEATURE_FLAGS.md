@@ -1,5 +1,9 @@
 # FEATURE_FLAGS
 
+> **Update after PR #3 (merged `8372f91`, doc refresh in Phase 3 Step 0):** the repo now has a `@main` app (`RADAR/App`), a temporary Layout Lab, `project.yml` + `Config/*.xcconfig`, and Neon backend code. **Still true: nothing has been compiled or run.** Where this file says otherwise, the update notes below win; the original text is kept as the Phase 2 record.
+> **Open decision:** this document assumes Supabase. The app's actual backend is Neon (Postgres + Auth + Functions), which has no `feature_flags` endpoint. Either keep a tiny Supabase project only for flags, or add a `/v1/flags` route to the Neon Function and replace `SupabaseFlagProvider`.
+
+
 Everything about the remote gate for the Glitch app icon. Tags: `[VERIFIED]` executed · `[UNVERIFIED]` written, never compiled/run · `[NOT DONE]` · `[ASSUMPTION]`.
 
 ## 1. Summary
@@ -8,7 +12,7 @@ Everything about the remote gate for the Glitch app icon. Tags: `[VERIFIED]` exe
 - It controls only whether **Settings → App icon** offers the Glitch icon. It does not deliver the icon: the icon is compiled into the app.
 - Flags **fail closed** and are cached; an offline or failing refresh never flips one.
 - **No backend exists.** No Supabase project or table was created or touched; the client is written against an *assumed* Supabase REST table. `[ASSUMPTION]` You said "the database"; you did not name Supabase.
-- **`FeatureFlags.refresh()` is never called by any code** and neither Settings view is mounted anywhere (`KNOWN_ISSUES.md` #3, #4).
+- **Update (PR #3):** `RootView` now calls `refresh()` at launch and on foreground, and both views are mounted in the Layout Lab — **inside `#if DEBUG` only**. There is still no real Settings screen.
 
 ## 2. Code map
 
@@ -83,7 +87,7 @@ The picker needs ≥ 2 choices. Turning the flag off later does **not** revert a
 - One `Toggle` per `FeatureFlag.allCases`; toggling calls `setOverride(flag, newValue)` (a persistent override). The caption shows `Server: on/off/not set · Default: off` or `Local override: on/off · Server: …`.
 - "Clear override" appears while an override exists. "Refresh from server" appears only when `isRemoteConfigured` and calls `refresh(force: true)`.
 - When remote isn't configured it says so ("every flag is off unless overridden here").
-- **Not mounted** in any screen (there is no Settings screen). When it is, it must live in the artifact's "Design review controls" group; `[ASSUMPTION]` it should be **excluded from release builds** (`#if DEBUG` or a build flag) — otherwise any user can unlock the icon locally. Not implemented.
+- Mounted only in the DEBUG-only Layout Lab (no real Settings screen yet); compiled out of release builds. When it is, it must live in the artifact's "Design review controls" group; `[ASSUMPTION]` it should be **excluded from release builds** (`#if DEBUG` or a build flag) — otherwise any user can unlock the icon locally. Not implemented.
 
 ## 7. Supabase expectations (SQL you must run — nothing has been run)
 
