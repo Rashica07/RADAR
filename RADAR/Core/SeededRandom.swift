@@ -40,45 +40,26 @@ struct SeededRandom {
     }
 }
 
-/// Emulates V8's TimSort when called with a comparator that ignores its arguments
-/// (`array.sort(() => rng() - 0.5)`). For arrays shorter than 64 elements V8 runs a
-/// single run-detection pass followed by binary insertion sort, so the exact sequence
-/// of comparator calls — and therefore of random draws — can be reproduced.
+/// Emulates V8's `Array.prototype.sort` for short arrays when called with a comparator that
+/// ignores its arguments (`array.sort(() => rng() - 0.5)`), so the exact sequence of comparator
+/// calls — and therefore of random draws — can be reproduced.
+///
+/// Verified against the Chromium V8 in the Claude browser pane (see `ArtworkTests`): for a
+/// 4-element array it is a plain binary insertion sort that starts at index 1 with NO run
+/// detection pass (the first call is `compare(a[1], a[0])`). Only the 4-element case is
+/// verified; other lengths follow the same algorithm but are unproven. Safari's JavaScriptCore
+/// would shuffle differently — the artifact's covers are defined by V8.
 enum V8RandomSort {
     static func sort<T>(_ input: [T], comparator: () -> Double) -> [T] {
         var a = input
-        let n = a.count
-        guard n >= 2, n < 64 else { return a }
-
-        // CountAndMakeRun(0, n)
-        var runLength = 2
-        let firstOrder = comparator()
-        let descending = firstOrder < 0
-        var idx = 2
-        while idx < n {
-            let order = comparator()
-            if descending {
-                if order >= 0 { break }
-            } else if order < 0 {
-                break
-            }
-            runLength += 1
-            idx += 1
-        }
-        if descending {
-            a[0..<runLength].reverse()
-        }
-
-        // BinaryInsertionSort(low: 0, start: runLength, high: n)
-        var start = runLength
-        while start < n {
+        guard a.count >= 2 else { return a }
+        for start in 1..<a.count {
             var left = 0
             var right = start
             let pivot = a[start]
             while left < right {
                 let mid = left + ((right - left) >> 1)
-                let order = comparator()
-                if order < 0 { right = mid } else { left = mid + 1 }
+                if comparator() < 0 { right = mid } else { left = mid + 1 }
             }
             var p = start
             while p > left {
@@ -86,7 +67,6 @@ enum V8RandomSort {
                 p -= 1
             }
             a[left] = pivot
-            start += 1
         }
         return a
     }

@@ -1,0 +1,27 @@
+// Golden-vector generator for the 8 artwork styles (ArtworkPrimitives).
+// The generator bodies below are copied VERBATIM from the Phase 01 web artifact bundle
+// (functions mi/hi/gi/_i/vi/yi/bi/xi, rng Gn, rounding helper F) with `jsx` stubbed to
+// return plain objects. Run in any JS engine (V8 matters: the `blocks` style uses
+// Array.sort with a random comparator):  node tools/gen-art-vectors.js > RADARTests/Fixtures/ArtVectors.json
+// or paste into a browser console and copy the returned JSON.
+const jsx = (type, props) => ({ type, ...props });
+const F = e => Math.round(e * 10) / 10;
+function Gn(e){let t=e>>>0;return()=>{t=t+1831565813>>>0;let e=t;return e=Math.imul(e^e>>>15,e|1),e^=e+Math.imul(e^e>>>7,e|61),((e^e>>>14)>>>0)/4294967296}}
+const PAL = {
+  ember: ['#2B1410','#E8553D','#F2A65A','#F6E3C4'], ultramarine: ['#0E1B3D','#3B5BFF','#9AB0FF','#F1F0E9'],
+  ochre: ['#2A2108','#E0A82E','#F3D77A','#8A6A14'], plum: ['#24112B','#A24BCF','#E7A6F2','#FFD9F5'],
+  moss: ['#10201A','#4FA36A','#B7E08C','#F1F0E9'], bone: ['#E9E4D4','#101413','#FF7F76','#79E2C0'],
+  lagoon: ['#0A2A2E','#2CC5C0','#79E2C0','#E8FFF8'], rose: ['#3A1520','#FF6F91','#FFC2D1','#FFF0F3'],
+  slate: ['#1D2330','#7C8BA8','#C7D0E3','#FF7F76'], clay: ['#3B2A22','#C98A62','#EBC9A6','#F6EFE4'],
+};
+function mi(e,[t,n,r,i]){let a=70+e()*60,o=70+e()*60,s=5+Math.floor(e()*3),c=[n,r,i,n,r,i,n],l=[jsx(`rect`,{width:`200`,height:`200`,fill:t},`bg`)];for(let t=s;t>=1;t--){let n=150/s*t;l.push(jsx(`circle`,{cx:F(a),cy:F(o),r:F(n),fill:t%2?`none`:c[t%7],stroke:c[(t+1)%7],strokeWidth:F(1+e()*9),opacity:t===s?.5:.95},t))}let u=e()*Math.PI*2,d=(s-1)*(150/s);return l.push(jsx(`circle`,{cx:F(a+Math.cos(u)*d),cy:F(o+Math.sin(u)*d),r:`9`,fill:i},`blip`)),l}function hi(e,[t,n,r,i]){let a=40+e()*120,o=100+e()*90,s=-Math.PI*(.2+e()*.6),c=1+e()*.5,l=s+c,u=e=>`${F(a+Math.cos(e)*260)} ${F(o+Math.sin(e)*260)}`,d=[jsx(`rect`,{width:`200`,height:`200`,fill:t},`bg`)];for(let e=1;e<=6;e++)d.push(jsx(`circle`,{cx:F(a),cy:F(o),r:e*32,fill:`none`,stroke:i,strokeOpacity:`.4`,strokeWidth:`1.2`},e));[[1,.2],[.72,.34],[.46,.55],[.2,.95]].forEach(([e,t],r)=>d.push(jsx(`path`,{d:`M${F(a)} ${F(o)} L${u(l-c*e)} A260 260 0 0 1 ${u(l)} Z`,fill:n,opacity:t},`w${r}`))),d.push(jsx(`line`,{x1:F(a),y1:F(o),x2:u(l).split(` `)[0],y2:u(l).split(` `)[1],stroke:r,strokeWidth:`2.6`},`l`));let f=s+c*(.3+e()*.5),p=40+e()*80;return d.push(jsx(`circle`,{cx:F(a+Math.cos(f)*p),cy:F(o+Math.sin(f)*p),r:`8`,fill:i},`b`)),d}function gi(e,[t,n,r,i]){let a=[jsx(`rect`,{width:`200`,height:`200`,fill:t},`bg`),jsx(`circle`,{cx:60+e()*80,cy:60+e()*80,r:58+e()*20,fill:n},`d`)],o=30+e()*40;for(let t=0;t<15;t++)o=Math.max(10,Math.min(150,o+(e()-.5)*60)),a.push(jsx(`rect`,{x:F(14+t*12.4),y:F(100-o/2),width:`7`,height:F(o),fill:t%4==0?i:r},t));return a}function _i(e,[t,n,r]){let i=e()*200,a=e()*200,o=[jsx(`rect`,{width:`200`,height:`200`,fill:t},`bg`)];o.push(jsx(`circle`,{cx:F(40+e()*120),cy:F(40+e()*120),r:F(36+e()*30),fill:r},`d`));for(let e=0;e<13;e++)for(let t=0;t<13;t++){let r=8+t*15.5,s=8+e*15.5,c=Math.hypot(r-i,s-a)/260,l=Math.max(.8,7.4*(1-c*1.15));o.push(jsx(`circle`,{cx:F(r),cy:F(s),r:F(l),fill:n},`${t}-${e}`))}return o}function vi(e,[t,n,r,i]){let a=[jsx(`rect`,{width:`200`,height:`200`,fill:t},`bg`)],o=[n,r,i,n];for(let t=0;t<4;t++){let n=t%2*100,r=Math.floor(t/2)*100,i=Math.floor(e()*4)*90,s=o[Math.floor(e()*4)];a.push(jsx(`g`,{transform:`translate(${n+50} ${r+50}) rotate(${i}) translate(-50 -50)`,children:[jsx(`path`,{d:`M0 0H100A100 100 0 0 1 0 100Z`,fill:s}),jsx(`circle`,{cx:`26`,cy:`26`,r:`13`,fill:o[(t+1)%4],opacity:`.95`})]},t))}return a}function yi(e,[t,n,r,i]){let a=50+e()*70,o=50+e()*70,s=[n,r,i,t],c=[jsx(`rect`,{width:`200`,height:`200`,fill:t},`bg`)],l=[[0,0,a,o],[a,0,200-a,o],[0,o,a,200-o],[a,o,200-a,200-o]],u=[n,i,r,n].sort(()=>e()-.5);return l.forEach(([e,t,n,r],i)=>c.push(jsx(`rect`,{x:F(e),y:F(t),width:F(n),height:F(r),fill:u[i]},i))),c.push(jsx(`circle`,{cx:F(a),cy:F(o),r:F(28+e()*22),fill:s[Math.floor(e()*3)],stroke:t,strokeWidth:`6`},`o`)),c}function bi(e,[t,n,r,i]){let a=[jsx(`rect`,{width:`200`,height:`200`,fill:t},`bg`)],o=[n,r,i,n,r,i,n,r],s=6+Math.floor(e()*2);for(let t=0;t<s;t++){let n=24+176/s*t,r=6+e()*14,i=e()*6,c=.025+e()*.03,l=`M0 200 L0 ${F(n)}`;for(let e=0;e<=200;e+=5)l+=` L${e} ${F(n+Math.sin(e*c*6.28+i)*r)}`;a.push(jsx(`path`,{d:`${l} L200 200 Z`,fill:o[t],opacity:.96},t))}return a}function xi(e,[t,n,r,i]){let a=80+e()*40,o=80+e()*40,s=[jsx(`rect`,{width:`200`,height:`200`,fill:t},`bg`)];for(let t=0;t<18;t++)s.push(jsx(`circle`,{cx:F(e()*200),cy:F(e()*200),r:F(.8+e()*1.4),fill:i,opacity:`.7`},`s${t}`));s.push(jsx(`circle`,{cx:F(a),cy:F(o),r:F(46+e()*16),fill:n},`c`));for(let t=0;t<3;t++)s.push(jsx(`ellipse`,{cx:F(a),cy:F(o),rx:F(80+t*24),ry:F(26+t*12),transform:`rotate(${F(e()*160-80)} ${F(a)} ${F(o)})`,fill:`none`,stroke:t===1?r:i,strokeWidth:`2`,opacity:`.85`},`e${t}`));return s.push(jsx(`circle`,{cx:F(a+70+e()*30),cy:F(o-20-e()*30),r:`9`,fill:r},`m`)),s}
+const Si = {rings:mi,sweep:hi,bars:gi,dots:_i,arcs:vi,blocks:yi,waves:bi,orbit:xi};
+const styles = Object.keys(Si), palettes = Object.keys(PAL);
+const seeds = [7, 1, 12345, 2166136261, 3735928559, 987654321];
+const cases = [];
+styles.forEach((style, si) => seeds.forEach((seed, i) => {
+  const palette = palettes[(si * 3 + i) % palettes.length];
+  cases.push({ seed, palette, style, prims: Si[style](Gn(seed), PAL[palette]) });
+}));
+const out = JSON.stringify({ cases });
+if (typeof process !== 'undefined' && process.stdout) process.stdout.write(out); else out;
