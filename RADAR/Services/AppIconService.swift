@@ -84,7 +84,10 @@ final class AppIconService {
     private let applier: AppIconApplying
     private(set) var current: AppIconChoice
 
-    init(applier: AppIconApplying = SystemIconApplier()) {
+    /// `applier` is optional (not a default argument) because a default argument is evaluated
+    /// outside the main actor, and `SystemIconApplier` is main-actor isolated.
+    init(applier: AppIconApplying? = nil) {
+        let applier = applier ?? SystemIconApplier()
         self.applier = applier
         current = AppIconChoice(alternateName: applier.alternateIconName)
     }

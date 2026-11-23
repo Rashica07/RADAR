@@ -23,10 +23,12 @@ final class LocalLibrary {
     init(persistence: PersistenceController = .shared) {
         self.persistence = persistence
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        directory = base.appendingPathComponent("RADAR/Imported", isDirectory: true)
+        let directory = base.appendingPathComponent("RADAR/Imported", isDirectory: true)
+        self.directory = directory
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let stored = persistence.load([Track].self, key: Self.key) ?? []
-        // Drop entries whose file has gone missing.
+        // Drop entries whose file has gone missing. (Uses the local `directory`: `self` is not
+        // fully initialised yet, so the closure must not capture it.)
         tracks = stored.filter { track in
             guard let name = track.local?.storedName else { return false }
             return FileManager.default.fileExists(atPath: directory.appendingPathComponent(name).path)
