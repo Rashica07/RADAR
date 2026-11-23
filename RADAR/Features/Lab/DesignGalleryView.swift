@@ -15,6 +15,7 @@ struct DesignGalleryView: View {
     @State private var toasts = ToastCenter()
     @State private var showAbout = false
     @State private var showPicker = false
+    @State private var progress = 0.32
 
     private let styles = ArtStyle.allCases
 
@@ -140,6 +141,12 @@ struct DesignGalleryView: View {
                     Button("Add to playlist") { showPicker = true }.buttonStyle(.radarTag())
                 }
                 NoSignalCard(message: "Can't reach the catalogue. Showing what is saved on this device.", actionTitle: "Try again") { toasts.show("Retrying…") }
+            }
+
+            block("Waveform scrubber · drag") {
+                WaveformScrubber(peaks: DemoCatalog.rawWaveform(trackId: "demo"), progress: progress, duration: 214) { progress = $0 }
+                ScrubTimes(progress: progress, duration: 214)
+                WaveformScrubber(peaks: nil, progress: 0, duration: 214, height: 40) { _ in }
             }
         }
     }
