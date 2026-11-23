@@ -11,7 +11,7 @@ enum TrackSource: String, Codable, Hashable, Sendable {
 }
 
 /// Rights-holder download status. For catalog tracks this is demo metadata.
-enum DownloadStatus: String, Codable, Hashable, Sendable {
+enum DownloadStatus: String, Codable, Hashable, CaseIterable, Sendable {
     case available
     case downloaded
     case streamingOnly = "streaming-only"
