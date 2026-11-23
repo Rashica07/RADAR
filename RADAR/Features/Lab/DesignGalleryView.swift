@@ -10,6 +10,8 @@ struct DesignGalleryView: View {
     @State private var glitch = 0
     @State private var playing = true
     @State private var split = false
+    @State private var saved: Set<String> = []
+    @State private var current = ""
 
     private let styles = ArtStyle.allCases
 
@@ -71,6 +73,48 @@ struct DesignGalleryView: View {
                     Button("Jazz") {}.buttonStyle(.radarSlash)
                 }
                 Button("Save to library") {}.buttonStyle(.radar(.primary, size: .lg, block: true))
+            }
+
+            block("Rows · swipe, press and hold") {
+                let catalog = DemoCatalog.shared
+                List {
+                    ForEach(catalog.chart(country: "GLOBAL", window: .week, limit: 4)) { entry in
+                        let t = entry.track
+                        let model = TrackRowModel(track: t, artist: catalog.artistName(for: t), entry: entry,
+                                                  isCurrent: current == t.id, isPlaying: true, isSaved: saved.contains(t.id),
+                                                  downloadProgress: t.id == catalog.chart(country: "GLOBAL", window: .week, limit: 1).first?.track.id ? 0.6 : nil)
+                        let art = catalog.art(for: t)
+                        let actions = TrackRowActions(play: { current = t.id }, toggleSave: {
+                            if saved.contains(t.id) { saved.remove(t.id) } else { saved.insert(t.id) }
+                        }, addToPlaylist: {}, openDetails: {})
+                        TrackRow(model: model, art: art, actions: actions)
+                            .trackActions(model, art: art, actions)
+                            .listRowBackground(Color.clear).listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                    }
+                    TrackRowSkeleton(rank: true, index: 1).listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+                }
+                .listStyle(.plain).scrollDisabled(true).frame(height: 5 * 72)
+            }
+
+            block("Tiles · rail") {
+                let catalog = DemoCatalog.shared
+                Rail(items: catalog.newReleases(limit: 6)) { t in
+                    Tile(title: t.title, subtitle: catalog.artistName(for: t), art: catalog.art(for: t), badge: "New")
+                }
+                .frame(height: 210).padding(.horizontal, -RadarScale.gutter)
+            }
+
+            block("Poster · Band · Mix") {
+                let catalog = DemoCatalog.shared
+                let entries = catalog.chart(country: "GLOBAL", window: .week, limit: 3)
+                HStack(spacing: 10) {
+                    ForEach(entries) { e in
+                        Poster(rank: e.rank, title: e.track.title, subtitle: catalog.artistName(for: e.track), art: catalog.art(for: e.track))
+                    }
+                }
+                Band(title: "Jazz", detail: "142 tracks", art: ArtSpec(key: "genre-jazz"))
+                Mix(title: "Late night mix", subtitle: "4 tracks", arts: entries.map { catalog.art(for: $0.track) } + [ArtSpec(key: "x")])
+                    .frame(width: 160)
             }
         }
     }
