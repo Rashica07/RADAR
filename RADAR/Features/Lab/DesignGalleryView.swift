@@ -12,10 +12,26 @@ struct DesignGalleryView: View {
     @State private var split = false
     @State private var saved: Set<String> = []
     @State private var current = ""
+    @State private var toasts = ToastCenter()
+    @State private var showAbout = false
+    @State private var showPicker = false
 
     private let styles = ArtStyle.allCases
 
     var body: some View {
+        content
+            .toastHost(toasts)
+            .sheet(isPresented: $showAbout) { AboutDemoDataSheet { showAbout = false }.radarSheet() }
+            .sheet(isPresented: $showPicker) {
+                AddToPlaylistSheet(trackTitle: "Autobahn Bloom", choices: [
+                    .init(id: "a", title: "Late night", count: 12, alreadyContains: false, art: ArtSpec(key: "a")),
+                    .init(id: "b", title: "Run", count: 8, alreadyContains: true, art: ArtSpec(key: "b"))
+                ], onPick: { _ in showPicker = false; toasts.show("Added", icon: .check) }, onCreate: { showPicker = false }, dismiss: { showPicker = false })
+                .radarSheet()
+            }
+    }
+
+    private var content: some View {
         VStack(alignment: .leading, spacing: 26) {
             SectionHeader("Design gallery", idx: "DS", kicker: "Step 3 · primitives", moving: true,
                           sub: "Artwork, FX, type and layout components, drawn natively.")
@@ -115,6 +131,15 @@ struct DesignGalleryView: View {
                 Band(title: "Jazz", detail: "142 tracks", art: ArtSpec(key: "genre-jazz"))
                 Mix(title: "Late night mix", subtitle: "4 tracks", arts: entries.map { catalog.art(for: $0.track) } + [ArtSpec(key: "x")])
                     .frame(width: 160)
+            }
+
+            block("Overlays") {
+                HStack(spacing: 8) {
+                    Button("Toast") { toasts.show("Saved to Library", icon: .heartFill) }.buttonStyle(.radarTag())
+                    Button("About demo data") { showAbout = true }.buttonStyle(.radarTag())
+                    Button("Add to playlist") { showPicker = true }.buttonStyle(.radarTag())
+                }
+                NoSignalCard(message: "Can't reach the catalogue. Showing what is saved on this device.", actionTitle: "Try again") { toasts.show("Retrying…") }
             }
         }
     }

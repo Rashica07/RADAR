@@ -13,13 +13,22 @@ final class ToastCenter {
 
     private(set) var current: Toast?
     private var dismissTask: Task<Void, Never>?
+    private let duration: Duration
+
+    init(duration: Duration = .seconds(2.4)) { self.duration = duration }
+
+    /// Hides the toast now (swipe-away, or a screen change).
+    func dismiss() {
+        dismissTask?.cancel()
+        current = nil
+    }
 
     func show(_ message: String, icon: RadarIconName? = nil) {
         dismissTask?.cancel()
         let toast = Toast(message: message, icon: icon)
         current = toast
         dismissTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(2.4))
+            try? await Task.sleep(for: self?.duration ?? .seconds(2.4))
             guard !Task.isCancelled else { return }
             if self?.current?.id == toast.id { self?.current = nil }
         }

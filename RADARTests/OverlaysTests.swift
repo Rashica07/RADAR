@@ -1,0 +1,40 @@
+import XCTest
+@testable import RADAR
+
+@MainActor
+final class OverlaysTests: XCTestCase {
+    func testToastShowReplacesAndDismissClears() {
+        let c = ToastCenter(duration: .seconds(60))
+        c.show("One")
+        let first = c.current?.id
+        c.show("Two", icon: .check)
+        XCTAssertEqual(c.current?.message, "Two")
+        XCTAssertNotEqual(c.current?.id, first)
+        c.dismiss()
+        XCTAssertNil(c.current)
+    }
+
+    func testToastAutoDismisses() async throws {
+        let c = ToastCenter(duration: .milliseconds(40))
+        c.show("Soon gone")
+        XCTAssertNotNil(c.current)
+        try await Task.sleep(for: .milliseconds(200))
+        XCTAssertNil(c.current)
+    }
+
+    func testOldToastTimerDoesNotDismissNewerToast() async throws {
+        let c = ToastCenter(duration: .milliseconds(120))
+        c.show("A")
+        try await Task.sleep(for: .milliseconds(70))
+        c.show("B")
+        try await Task.sleep(for: .milliseconds(90))   // A's timer would have fired by now
+        XCTAssertEqual(c.current?.message, "B")
+    }
+
+    func testDemoDataSheetStatesWhatIsSimulatedAndWhatIsReal() {
+        let text = AboutDemoDataSheet.points.map { $0.title + " " + $0.body }.joined(separator: " ").lowercased()
+        XCTAssertTrue(text.contains("simulated"))
+        XCTAssertTrue(text.contains("your own files are real"))
+        XCTAssertEqual(AboutDemoDataSheet.points.count, 4)
+    }
+}
