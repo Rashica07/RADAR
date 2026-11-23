@@ -1,3 +1,4 @@
+import Charts
 import SwiftUI
 
 /// `.flag--new`
@@ -139,33 +140,36 @@ struct MoveIndicator: View {
 
 // MARK: - Sparkline
 
-/// `.spark`: 1.8 pt miter polyline plus a dot on the last point; mint when trending up.
+/// Tiny trend line built on Swift Charts: no axes, a dot on the latest value, mint when rising.
 struct Sparkline: View {
     var data: [Double]
     var up = true
     var width: CGFloat = 72
     var height: CGFloat = 24
 
-    /// Same formula as the artifact's `Ii`: x spread over the width, y inset 3 pt top and bottom.
-    static func points(_ data: [Double], width: Double, height: Double) -> [CGPoint] {
-        guard let hi = data.max(), let lo = data.min() else { return [] }
-        let range = (hi - lo) == 0 ? 1 : hi - lo
-        return data.enumerated().map { i, v in
-            CGPoint(x: data.count > 1 ? Double(i) / Double(data.count - 1) * width : 0,
-                    y: height - 3 - (v - lo) / range * (height - 6))
-        }
+    /// The vertical range with a little air so the line and dot never touch the frame.
+    static func domain(_ data: [Double]) -> ClosedRange<Double> {
+        guard let lo = data.min(), let hi = data.max() else { return 0...1 }
+        let span = hi - lo == 0 ? 1 : hi - lo
+        return (lo - span * 0.17)...(hi + span * 0.17)
     }
 
     var body: some View {
         let color = up ? Color.radarSignalText : Color.radarText3
-        Canvas { context, _ in
-            let pts = Self.points(data, width: width, height: height)
-            guard let last = pts.last else { return }
-            var line = Path()
-            line.addLines(pts)
-            context.stroke(line, with: .color(color), style: StrokeStyle(lineWidth: 1.8, lineCap: .butt, lineJoin: .miter))
-            context.fill(Path(ellipseIn: CGRect(x: last.x - 2.8, y: last.y - 2.8, width: 5.6, height: 5.6)), with: .color(color))
+        Chart {
+            ForEach(Array(data.enumerated()), id: \.offset) { i, v in
+                LineMark(x: .value("Day", i), y: .value("Plays", v))
+                    .foregroundStyle(color).lineStyle(StrokeStyle(lineWidth: 1.8, lineJoin: .miter))
+                    .interpolationMethod(.linear)
+            }
+            if let last = data.indices.last {
+                PointMark(x: .value("Day", last), y: .value("Plays", data[last]))
+                    .foregroundStyle(color).symbolSize(26)
+            }
         }
+        .chartXAxis(.hidden).chartYAxis(.hidden)
+        .chartYScale(domain: Self.domain(data))
+        .chartLegend(.hidden)
         .frame(width: width, height: height)
         .accessibilityHidden(true)
     }

@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// `.sh`: index · hairline rule · readout · link, then a big display title and optional sub-line.
+/// Opens a screen section: index and rule on a thin top line, an optional live readout and "see all"
+/// link, then the big title and a sentence of context.
 struct SectionHeader: View {
     struct Action { let label: String; let perform: () -> Void }
 
@@ -12,7 +13,6 @@ struct SectionHeader: View {
     var loading = false
     var large = false
     var action: Action?
-    @ScaledMetric(relativeTo: .largeTitle) private var scale = 1
 
     init(_ title: String, idx: String? = nil, kicker: String? = nil, moving: Bool = false, sub: String? = nil,
          loading: Bool = false, large: Bool = false, action: Action? = nil) {
@@ -22,78 +22,65 @@ struct SectionHeader: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 12) {
-                if let idx {
-                    Text(idx).font(RadarFont.ui(11, .bold, relativeTo: .caption2)).tracking(11 * 0.14)
-                        .monospacedDigit().foregroundStyle(Color.radarAccentText).accessibilityHidden(true)
-                }
-                Rectangle().fill(Color.radarLineStrong).frame(height: 1).accessibilityHidden(true)
-                if loading {
-                    AcquiringSignal()
-                } else if let kicker {
-                    HStack(spacing: 8) {
-                        if moving { PingBlip(size: 6) }
-                        Text(kicker).radarReadout(moving ? .radarSignalText : .radarText3)
-                    }
-                }
-                if let action {
-                    Button(action: action.perform) {
-                        HStack(spacing: 2) {
-                            Text(action.label).font(RadarFont.ui(13, .semibold)).foregroundStyle(Color.radarAccentText)
-                            RadarIcon(.chevronRight, size: 14).foregroundStyle(Color.radarAccentText)
-                        }
-                        .frame(minHeight: RadarScale.touch)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .frame(minHeight: 28)
-
-            TitleText(title: title, large: large)
-
+            topLine
+            Text(title).radarTitle(large ? .large : .medium)
+                .foregroundStyle(Color.radarText)
+                .accessibilityAddTraits(.isHeader)
             if let sub {
-                Text(sub).font(RadarFont.body(15)).foregroundStyle(Color.radarText2).padding(.top, 2)
+                Text(sub).font(RadarFont.body(15, .regular, relativeTo: .subheadline)).foregroundStyle(Color.radarText2)
+                    .padding(.top, 2)
             }
         }
         .padding(.bottom, 14)
         .accessibilityElement(children: .contain)
     }
 
-    private struct TitleText: View {
-        let title: String
-        let large: Bool
-        @Environment(\.radarScreenWidth) private var width
-        var body: some View {
-            let size = large ? RadarScale.displayL(width) : RadarScale.displayM(width)
-            Text(title).font(RadarFont.display(size, .black)).textCase(.uppercase)
-                .lineSpacing(0).foregroundStyle(Color.radarText)
-                .accessibilityAddTraits(.isHeader)
+    private var topLine: some View {
+        HStack(spacing: 12) {
+            if let idx {
+                Text(idx).font(RadarFont.ui(11, .bold, relativeTo: .caption2)).tracking(1.5)
+                    .monospacedDigit().foregroundStyle(Color.radarAccentText).accessibilityHidden(true)
+            }
+            Rectangle().fill(Color.radarLineStrong).frame(height: 1).accessibilityHidden(true)
+            if loading {
+                AcquiringSignal()
+            } else if let kicker {
+                HStack(spacing: 8) {
+                    if moving { PingBlip(size: 6) }
+                    Text(kicker).radarReadout(moving ? .radarSignalText : .radarText3)
+                }
+            }
+            if let action {
+                Button(action: action.perform) {
+                    HStack(spacing: 2) {
+                        Text(action.label).font(RadarFont.ui(13, .semibold, relativeTo: .footnote))
+                        RadarIcon(.chevronRight, size: 14)
+                    }
+                    .foregroundStyle(Color.radarAccentText)
+                    .frame(minHeight: RadarScale.touch)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
         }
+        .frame(minHeight: 28)
     }
 }
 
-/// "Acquiring signal" with a blinking block caret (`.acq`).
+/// "Acquiring signal" with a blinking block caret.
 struct AcquiringSignal: View {
     @Environment(\.accessibilityReduceMotion) private var reduce
     var body: some View {
         HStack(spacing: 8) {
             Text("Acquiring signal").font(RadarFont.ui(11, .semibold, relativeTo: .caption2))
-                .tracking(11 * 0.14).textCase(.uppercase)
-            TimelineView(.periodic(from: .now, by: 0.45)) { tl in
-                let on = reduce || Int(tl.date.timeIntervalSinceReferenceDate / 0.45) % 2 == 0
-                Rectangle().frame(width: 7, height: 12).opacity(on ? 1 : 0)
-            }
+                .tracking(1.5).textCase(.uppercase)
+            Rectangle().frame(width: 7, height: 12)
+                .phaseAnimator(reduce ? [1.0] : [1.0, 0.0]) { caret, opacity in
+                    caret.opacity(opacity)
+                } animation: { _ in .linear(duration: 0.01).delay(0.45) }
         }
         .foregroundStyle(Color.radarAccentText)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel("Loading")
-    }
-}
-
-private struct ScreenWidthKey: EnvironmentKey { static let defaultValue: CGFloat = 393 }
-extension EnvironmentValues {
-    /// Width the fluid type scale is computed against (the app shell sets it from the window).
-    var radarScreenWidth: CGFloat {
-        get { self[ScreenWidthKey.self] }
-        set { self[ScreenWidthKey.self] = newValue }
     }
 }

@@ -1,36 +1,44 @@
 import SwiftUI
 
-/// The artifact's fluid type tokens: `clamp(min, N vw, max)` against the width of the screen.
+/// Layout constants and type sizes. Sizes are base values for the default text size; every one is
+/// attached to a Dynamic Type style, so they grow and shrink with the reader's setting.
 enum RadarScale {
-    static func clamp(min lo: CGFloat, vw: CGFloat, max hi: CGFloat, width: CGFloat) -> CGFloat {
-        Swift.min(hi, Swift.max(lo, vw / 100 * width))
-    }
-    static func hero(_ width: CGFloat) -> CGFloat { clamp(min: 76, vw: 26, max: 176, width: width) }       // --fs-hero
-    static func displayL(_ width: CGFloat) -> CGFloat { clamp(min: 56, vw: 17, max: 104, width: width) }    // --fs-display-l
-    static func displayM(_ width: CGFloat) -> CGFloat { clamp(min: 40, vw: 11, max: 56, width: width) }     // --fs-display-m
-    static let displayS: CGFloat = 28                                                                      // --fs-display-s
-    static let gutter: CGFloat = 16                                                                        // --size-gutter
-    static let touch: CGFloat = 44                                                                         // minimum touch target
+    static let gutter: CGFloat = 16
+    static let touch: CGFloat = 44              // smallest tappable height
+    static let readableWidth: CGFloat = 720     // text columns on wide screens
     static let pageMaxWidth: CGFloat = 1360
+
+    /// Display sizes for titles. `.hero` is for the Home lead, `.large` for screen titles, `.medium` for sections.
+    enum Title {
+        case hero, large, medium, small
+        var size: CGFloat { switch self { case .hero: 88; case .large: 60; case .medium: 42; case .small: 28 } }
+        var style: Font.TextStyle { switch self { case .hero, .large: .largeTitle; case .medium: .title; case .small: .title2 } }
+        var font: Font { RadarFont.display(size, .black, relativeTo: style) }
+    }
 }
 
 extension View {
-    /// `.page`: 16 pt gutters, content capped at 1360 pt and centred.
+    /// Page gutters, with content centred and capped on wide windows.
     func radarPage() -> some View {
         padding(.horizontal, RadarScale.gutter)
             .frame(maxWidth: RadarScale.pageMaxWidth)
             .frame(maxWidth: .infinity)
     }
+
+    /// Big uppercase display title that shrinks (never clips) to fit a few lines.
+    func radarTitle(_ title: RadarScale.Title, lines: Int = 3) -> some View {
+        font(title.font).textCase(.uppercase).lineLimit(lines).minimumScaleFactor(0.5)
+    }
 }
 
 /// One piece of a `Readout`.
 enum ReadoutPart: Equatable, Sendable {
-    case text(String)      // plain, text-3
-    case strong(String)    // `<b>`: text-2
-    case separator         // `<i>`: dimmed slash
+    case text(String)      // plain
+    case strong(String)    // emphasised
+    case separator         // dimmed slash
 }
 
-/// `.readout`: 11 pt uppercase, 0.13 em tracking, tabular figures, wraps.
+/// Small uppercase status line: "WEEK 47 / 12 PLAYS / IT".
 struct Readout: View {
     var parts: [ReadoutPart]
     var hot = false

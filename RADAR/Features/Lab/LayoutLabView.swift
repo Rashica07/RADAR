@@ -164,7 +164,7 @@ struct LayoutLabView: View {
     /// no user can unlock a flagged feature locally.
     private var debugControls: some View {
         VStack(alignment: .leading, spacing: 30) {
-            DesignGalleryView().environment(\.radarScreenWidth, layout.size.width)
+            DesignGalleryView()
             AppIconPickerSection()
             section("Feature flags (design review)") {
                 FeatureFlagControls()

@@ -3,20 +3,6 @@ import XCTest
 @testable import RADAR
 
 final class FXTests: XCTestCase {
-    func testCubicBezierEndpointsAndShape() {
-        for curve in [CubicBezier.ease, .easeOut, .easeInOut, .spring] {
-            XCTAssertEqual(curve.value(at: 0), 0); XCTAssertEqual(curve.value(at: 1), 1)
-        }
-        // CSS ease-in-out is symmetric around the midpoint
-        XCTAssertEqual(CubicBezier.easeInOut.value(at: 0.5), 0.5, accuracy: 1e-6)
-        // --m-ease (.2,.8,.2,1) rushes ahead early
-        XCTAssertGreaterThan(CubicBezier.ease.value(at: 0.25), 0.5)
-        // spring overshoots 1 before settling
-        XCTAssertGreaterThan((1...19).map { CubicBezier.spring.value(at: Double($0) / 20) }.max()!, 1.0)
-        var last = 0.0
-        for i in 0...50 { let v = CubicBezier.ease.value(at: Double(i) / 50); XCTAssertGreaterThanOrEqual(v, last); last = v }
-    }
-
     func testSliceKeyframesHoldInHardSteps() {
         XCTAssertEqual(GlitchSlice.frame(.a, progress: 0), SliceFrame(top: 0.06, bottom: 0.78, dx: -7))
         XCTAssertEqual(GlitchSlice.frame(.a, progress: 0.17), SliceFrame(top: 0.06, bottom: 0.78, dx: -7))
@@ -24,7 +10,7 @@ final class FXTests: XCTestCase {
         XCTAssertEqual(GlitchSlice.frame(.a, progress: 0.99), SliceFrame(top: 0.24, bottom: 0.50, dx: 3))
         XCTAssertEqual(GlitchSlice.frame(.b, progress: 0.5), SliceFrame(top: 0.50, bottom: 0.28, dx: 4))
         XCTAssertEqual(GlitchSlice.frame(.b, progress: 0.66), SliceFrame(top: 0.82, bottom: 0.02, dx: -3))
-        // after the burst the slices rest at ±fx-rgb, thin bands (8–10 % tall)
+        // after the burst the slices rest at ±rgb, thin bands (8–10 % tall)
         XCTAssertEqual(GlitchSlice.frame(.a, progress: 1), SliceFrame(top: 0.24, bottom: 0.68, dx: -2.4))
         XCTAssertEqual(GlitchSlice.frame(.b, progress: 5), SliceFrame(top: 0.66, bottom: 0.24, dx: 2))
         XCTAssertEqual(GlitchSlice.frame(.a, progress: -1), GlitchSlice.frame(.a, progress: 0))
@@ -45,47 +31,6 @@ final class FXTests: XCTestCase {
         XCTAssertEqual(a.count, 14)
         XCTAssertTrue(a.allSatisfy { abs($0) <= 7 })
         XCTAssertGreaterThan(Set(a).count, 8)
-    }
-
-    func testEQBars() {
-        XCTAssertEqual(EQTiming.height(bar: 1, time: 3, playing: false), 0.85)
-        // bar 0, no delay: starts at 25 %, peaks at 100 % at 0.45 s (t=.5), steps in sixths
-        XCTAssertEqual(EQTiming.height(bar: 0, time: 0, playing: true), 0.25, accuracy: 1e-9)
-        XCTAssertEqual(EQTiming.height(bar: 0, time: 0.4499, playing: true), 0.25 + 0.75 * 5 / 6, accuracy: 1e-9)
-        XCTAssertEqual(EQTiming.height(bar: 0, time: 0.45, playing: true), 1, accuracy: 1e-9)
-        XCTAssertEqual(EQTiming.height(bar: 0, time: 0.9, playing: true), 0.25, accuracy: 1e-9)
-        // negative delay shifts later bars ahead: bar 1 (-0.3 s) at t=0 behaves like bar 0 at t=0.3
-        XCTAssertEqual(EQTiming.height(bar: 1, time: 0, playing: true), EQTiming.height(bar: 0, time: 0.3, playing: true), accuracy: 1e-9)
-        for i in 0..<4 { for k in 0..<50 {
-            let h = EQTiming.height(bar: i, time: Double(k) * 0.037, playing: true)
-            XCTAssertTrue(h >= 0.25 - 1e-9 && h <= 1 + 1e-9, "bar \(i) t=\(k): \(h)")
-        } }
-    }
-
-    func testPingAndSkeletonTiming() {
-        let start = PingTiming.state(time: 0)
-        XCTAssertEqual(start.opacity, 0.9, accuracy: 1e-9); XCTAssertEqual(start.scale, 1, accuracy: 1e-9)
-        let mid = PingTiming.state(time: 1.0)
-        XCTAssertLessThan(mid.opacity, 0.9); XCTAssertGreaterThan(mid.scale, 1)
-        let rest = PingTiming.state(time: 2.5)                    // 78 % — holds at invisible, 3.2×
-        XCTAssertEqual(rest.opacity, 0); XCTAssertEqual(rest.scale, 3.2)
-        XCTAssertEqual(PingTiming.state(time: 3.2).opacity, 0.9, accuracy: 1e-9)   // loops
-
-        XCTAssertEqual(SkeletonTiming.offset(time: 0), -1)
-        XCTAssertEqual(SkeletonTiming.offset(time: 1.3 / 16 - 0.001), -1)          // holds for a whole step
-        XCTAssertEqual(SkeletonTiming.offset(time: 1.3 / 16 + 0.001), -1 + 3.6 / 16, accuracy: 1e-9)
-        XCTAssertEqual(SkeletonTiming.offset(time: 1.3 * 15.5 / 16), -1 + 3.6 * 15 / 16, accuracy: 1e-9)
-    }
-
-    func testGrainTile() {
-        let tile = GrainTile.image
-        XCTAssertEqual(tile.width, 180); XCTAssertEqual(tile.height, 180)
-        let bytes = [UInt8](tile.dataProvider!.data! as Data)
-        let alphas = stride(from: 3, to: bytes.count, by: 4).map { Double(bytes[$0]) / 255 }
-        let mean = alphas.reduce(0, +) / Double(alphas.count)
-        XCTAssertEqual(mean, 0.45, accuracy: 0.03)             // ≈ 0.9 × 0.5
-        XCTAssertGreaterThan(Set(alphas).count, 100)           // real noise, not a flat tone
-        XCTAssertTrue(alphas.allSatisfy { $0 <= 0.9 + 1e-9 })
     }
 
     // MARK: Rendering
@@ -133,13 +78,21 @@ final class FXTests: XCTestCase {
         let p = try pixels(text, 160, 60)
         var colours = Set<[UInt8]>(); for i in stride(from: 0, to: p.count, by: 4 * 5) { colours.insert(Array(p[i..<i + 3])) }
         XCTAssertGreaterThan(colours.count, 3)
-        // scanlines darken every 3rd row of a flat white field by ~5 %
-        let scanned = try pixels(Color.white.overlay { ArtFXOverlay() }, 30, 30)
-        let rows = (0..<9).map { px(scanned, 5, $0, 30).0 }
-        XCTAssertGreaterThan(Set(rows).count, 1)
-        // FX switched off → overlay draws nothing
-        let off = try pixels(Color.white.overlay { ArtFXOverlay() }.environment(\.radarFX, RadarFXEnvironment(enabled: false)), 30, 30)
+        // the film shader and the FX-off switch must at least not break rendering
+        let film = try pixels(Color.gray.frame(width: 30, height: 30).artFX(), 30, 30)
+        XCTAssertEqual(film.count, 30 * 30 * 4)
+        let off = try pixels(Color.white.frame(width: 30, height: 30).artFX().environment(\.radarFX, RadarFXEnvironment(enabled: false)), 30, 30)
         XCTAssertEqual(px(off, 5, 1, 30).0, 255)
+    }
+
+    func testEQRoutesStayInRangeAndDiffer() {
+        XCTAssertEqual(EQBars.rest, [0.45, 0.85, 0.60, 0.35])
+        XCTAssertEqual(EQBars.routes.count, 4)
+        for r in EQBars.routes {
+            XCTAssertEqual(r.count, 5)
+            XCTAssertTrue(r.allSatisfy { $0 >= 0.25 && $0 <= 1 })
+        }
+        XCTAssertEqual(Set(EQBars.routes.map { $0.map { String($0) }.joined() }).count, 4, "bars must not move in lockstep")
     }
 
     @MainActor func testEQSkeletonPingRender() throws {

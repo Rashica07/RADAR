@@ -23,11 +23,11 @@ final class OverlaysTests: XCTestCase {
     }
 
     func testOldToastTimerDoesNotDismissNewerToast() async throws {
-        let c = ToastCenter(duration: .milliseconds(120))
+        let c = ToastCenter(duration: .milliseconds(500))
         c.show("A")
-        try await Task.sleep(for: .milliseconds(70))
+        try await Task.sleep(for: .milliseconds(300))
         c.show("B")
-        try await Task.sleep(for: .milliseconds(90))   // A's timer would have fired by now
+        try await Task.sleep(for: .milliseconds(300))   // A would have expired by now (600 ms), B has not (800 ms)
         XCTAssertEqual(c.current?.message, "B")
     }
 

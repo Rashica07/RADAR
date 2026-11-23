@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// `.tabs`: uppercase labels with optional counts, a hairline underneath, and a 3 pt accent "ink"
-/// that slides (0.38 s ease-out) to the selected tab. Scrolls sideways and fades at the edge.
+/// Segmented text tabs with counts. The accent ink glides to the selected tab with a spring, the
+/// selected tab scrolls into view, and each change ticks. Scrolls sideways when the labels don't fit.
 struct RadarTabs<Value: Hashable>: View {
     struct Item: Identifiable {
         let value: Value
@@ -13,41 +13,47 @@ struct RadarTabs<Value: Hashable>: View {
 
     let items: [Item]
     @Binding var selection: Value
-    var compact = false                         // `.tabs--mute`: 40 pt tall instead of 46
     @Namespace private var inkSpace
+    @ScaledMetric(relativeTo: .footnote) private var height: CGFloat = 46
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 20) {
-                ForEach(items) { item in
-                    let selected = item.value == selection
-                    Button { selection = item.value } label: {
-                        HStack(spacing: 6) {
-                            Text(item.label)
-                            if let n = item.count { Text("\(n)").monospacedDigit().foregroundStyle(Color.radarText3) }
-                        }
-                        .font(RadarFont.ui(12, .bold, relativeTo: .caption))
-                        .tracking(12 * 0.14).textCase(.uppercase)
-                        .foregroundStyle(selected ? Color.radarText : Color.radarText3)
-                        .frame(minHeight: compact ? 44 : 46)       // never below the 44 pt touch target
-                        .fixedSize()
-                        .overlay(alignment: .bottom) {
-                            if selected {
-                                Rectangle().fill(Color.radarAccent).frame(height: 3)
-                                    .matchedGeometryEffect(id: "ink", in: inkSpace)
-                            }
-                        }
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 20) {
+                    ForEach(items) { item in tab(item) }
                 }
+                .padding(.horizontal, RadarScale.gutter)
             }
-            .animation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.38), value: selection)
+            .onChange(of: selection) { _, new in
+                withAnimation(.snappy) { proxy.scrollTo(new, anchor: .center) }
+            }
         }
         .overlay(alignment: .bottom) { Rectangle().fill(Color.radarLine).frame(height: 1).allowsHitTesting(false) }
-        .mask(
-            LinearGradient(stops: [.init(color: .black, location: 0.92), .init(color: .clear, location: 1)],
-                           startPoint: .leading, endPoint: .trailing)
-        )
+        .sensoryFeedback(.selection, trigger: selection) { _, _ in Haptics.isEnabled }
+    }
+
+    private func tab(_ item: Item) -> some View {
+        let selected = item.value == selection
+        return Button {
+            withAnimation(.snappy(duration: 0.35)) { selection = item.value }
+        } label: {
+            HStack(spacing: 6) {
+                Text(item.label)
+                if let n = item.count { Text("\(n)").monospacedDigit().foregroundStyle(Color.radarText3) }
+            }
+            .font(RadarFont.ui(12, .bold, relativeTo: .caption)).tracking(1.7).textCase(.uppercase)
+            .foregroundStyle(selected ? Color.radarText : Color.radarText3)
+            .frame(minHeight: max(height, RadarScale.touch)).fixedSize()
+            .overlay(alignment: .bottom) {
+                if selected {
+                    Rectangle().fill(Color.radarAccent).frame(height: 3)
+                        .matchedGeometryEffect(id: "ink", in: inkSpace)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .id(item.value)
+        .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
     }
 }
