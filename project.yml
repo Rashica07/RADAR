@@ -73,6 +73,11 @@ targets:
         RADARFlagsURL: $(RADAR_FLAGS_URL)
         RADARFlagsAnonKey: $(RADAR_FLAGS_ANON_KEY)
 
+        # Neon backend (empty = demo data only). Public endpoints; no secrets. See docs/NEON_BACKEND.md.
+        RADARApiURL: $(RADAR_API_URL)
+        RADARAuthURL: $(RADAR_AUTH_URL)
+        RADARAuthOrigin: $(RADAR_AUTH_ORIGIN)
+
         # Added with the player (Phase 3), not before:
         #   UIBackgroundModes: [audio]
     settings:

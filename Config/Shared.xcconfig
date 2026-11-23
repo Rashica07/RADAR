@@ -46,3 +46,9 @@ RADAR_FLAGS_ANON_KEY =
 
 // Optional, machine-specific overrides (bundle id, team, flags URL/key). Never committed.
 #include? "Local.xcconfig"
+
+// ---- Neon backend (Info.plist: RADARApiURL / RADARAuthURL / RADARAuthOrigin) --------------
+// Public endpoints only. Set in Config/Local.xcconfig; empty = the app runs on demo data.
+RADAR_API_URL =
+RADAR_AUTH_URL =
+RADAR_AUTH_ORIGIN =
