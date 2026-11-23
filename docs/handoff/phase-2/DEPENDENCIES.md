@@ -20,9 +20,9 @@ Not yet used but planned: MediaPlayer (`MPNowPlayingInfoCenter`, `MPRemoteComman
 
 | Item | Value | Tag |
 |---|---|---|
-| Minimum iOS | **17.0** (Observation, `#Preview`, `@Environment(Type.self)`) | `[ASSUMPTION]` |
+| Minimum iOS | **17.0** (Observation, `#Preview`, `@Environment(Type.self)`) | confirmed by the owner |
 | Swift language mode | **5** (code not written for strict Swift 6 concurrency) | `[ASSUMPTION]` |
-| Xcode | 16 recommended; 15 should work for the features used | `[ASSUMPTION]`, unverified |
+| Xcode | **27.1 or later** — the iPhone Duo simulator is an Xcode 27.1 feature and the Duo layout APIs are iOS 27.1+ (Apple docs, retrieved 2026-11-23) | verified from Apple pages; `[UNVERIFIED]` that Xcode 27.x accepts a 17.0 deployment target |
 | Remote services | Supabase REST for feature flags (anon key only) — **not provisioned** | `[ASSUMPTION]` |
 | Info.plist keys expected | `UIAppFonts`, `UILaunchScreen`, `RADARFlagsURL`, `RADARFlagsAnonKey`, (later) `UIBackgroundModes` | not created |
 | Build settings expected | `ASSETCATALOG_COMPILER_APPICON_NAME=AppIcon`, `ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES=AppIconGlitch` | not created |

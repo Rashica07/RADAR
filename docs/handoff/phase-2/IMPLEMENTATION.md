@@ -125,7 +125,7 @@ Implementation (all `[UNVERIFIED]` in Swift; the JS twin `[VERIFIED]`):
 
 | # | Decision | Tag |
 |---|---|---|
-| 1 | Minimum iOS 17 (Observation, `#Preview`, `@Environment(Type.self)`); Swift 5 language mode | `[ASSUMPTION]` |
+| 1 | Minimum iOS 17 (Observation, `#Preview`, `@Environment(Type.self)`) — **confirmed by the owner**; build with Xcode 27.1+; Swift 5 language mode | min iOS: confirmed · Swift mode: `[ASSUMPTION]` |
 | 2 | "The database" = Supabase REST (`feature_flags` table, anon key) | `[ASSUMPTION]` — you never named Supabase |
 | 3 | Flags fail closed; local override beats remote | design choice |
 | 4 | Glitch icon stays selectable while active even if its flag is later turned off | design choice |

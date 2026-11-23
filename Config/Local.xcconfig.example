@@ -1,0 +1,16 @@
+// Copy to Config/Local.xcconfig (git-ignored) and fill in. NEEDS YOU: all values.
+
+RADAR_BUNDLE_ID = com.yourcompany.radar
+DEVELOPMENT_TEAM = XXXXXXXXXX
+
+// Remote feature flags (Supabase REST). Leave empty to keep every flag off.
+// Write "https://" as https:/$(SLASH) because "//" starts a comment in an .xcconfig.
+// Use the project's PUBLISHABLE (anon) key only. Never a service_role key.
+// RADAR_FLAGS_URL = https:/$(SLASH)YOUR-PROJECT-REF.supabase.co
+// RADAR_FLAGS_ANON_KEY = YOUR-PUBLISHABLE-KEY
+
+// Neon backend. Write "https://" as https:/$(SLASH) because "//" starts a comment in an .xcconfig.
+// RADAR_API_URL = https:/$(SLASH)<branch>-radar.compute.<region>.aws.neon.tech
+// RADAR_AUTH_URL = https:/$(SLASH)<endpoint>.neonauth.<region>.aws.neon.tech/neondb/auth
+// RADAR_AUTH_ORIGIN must be a trusted origin registered with: neon neon-auth domain add <origin>
+// RADAR_AUTH_ORIGIN = https:/$(SLASH)app.radar.example

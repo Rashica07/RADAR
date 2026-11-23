@@ -1,0 +1,54 @@
+// RADAR — settings shared by every configuration and target.
+//
+// PLATFORM REQUIREMENTS (docs/PLATFORM_REQUIREMENTS.md)
+//   • Minimum deployment target ........ iOS 17.0   (do NOT raise it because development/testing is on iOS 27)
+//   • Primary + exclusive manual testing  iOS 27
+//   • Build with ........................ Xcode 27.1 or later (iPhone Duo simulator; iOS 27.1 layout APIs)
+//   • Devices ........................... iPhone (incl. iPhone Duo) + iPad
+//
+// Anything newer than iOS 17 must be guarded with #available / @available and have a fallback.
+// With IPHONEOS_DEPLOYMENT_TARGET = 17.0 the compiler enforces this: unguarded use of a newer API is an error.
+
+IPHONEOS_DEPLOYMENT_TARGET = 17.0
+SDKROOT = iphoneos
+SUPPORTED_PLATFORMS = iphoneos iphonesimulator
+
+// 1 = iPhone, 2 = iPad. iPhone Duo is an iPhone-idiom device: it needs no separate family.
+TARGETED_DEVICE_FAMILY = 1,2
+
+// Mac Catalyst is out of scope.
+SUPPORTS_MACCATALYST = NO
+
+// Written for the Swift 5 language mode. Strict concurrency checking is minimal until the
+// first green build; raise it deliberately later.
+SWIFT_VERSION = 5.0
+SWIFT_STRICT_CONCURRENCY = minimal
+
+// App icons: the primary icon and the alternate "Glitch" icon (unlocked remotely by a feature flag).
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon
+ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = AppIconGlitch
+ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor
+
+ENABLE_PREVIEWS = YES
+MARKETING_VERSION = 0.1.0
+CURRENT_PROJECT_VERSION = 1
+
+// ---- Identity: NEEDS YOU --------------------------------------------------------------
+// Set these in Config/Local.xcconfig (git-ignored; copy Config/Local.xcconfig.example).
+PRODUCT_BUNDLE_IDENTIFIER = $(RADAR_BUNDLE_ID)
+
+// ---- Remote feature flags (Info.plist: RADARFlagsURL / RADARFlagsAnonKey) ---------------
+// Empty = feature flags are not connected and every flag stays off.
+// In an .xcconfig "//" starts a comment, so a URL must be written with $(SLASH).
+SLASH = /
+RADAR_FLAGS_URL =
+RADAR_FLAGS_ANON_KEY =
+
+// Optional, machine-specific overrides (bundle id, team, flags URL/key). Never committed.
+#include? "Local.xcconfig"
+
+// ---- Neon backend (Info.plist: RADARApiURL / RADARAuthURL / RADARAuthOrigin) --------------
+// Public endpoints only. Set in Config/Local.xcconfig; empty = the app runs on demo data.
+RADAR_API_URL =
+RADAR_AUTH_URL =
+RADAR_AUTH_ORIGIN =
