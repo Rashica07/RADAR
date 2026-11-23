@@ -87,7 +87,10 @@ final class LibraryStore {
 
     func createPlaylist() -> UserPlaylist {
         let n = playlists.filter { $0.title.hasPrefix("New playlist") }.count + 1
-        let stamp = Int(Date().timeIntervalSince1970 * 1000)
+        // Millisecond timestamp like the web build, bumped until unique so two playlists created
+        // in the same millisecond can never share an id (the second would shadow the first).
+        var stamp = Int(Date().timeIntervalSince1970 * 1000)
+        while playlists.contains(where: { $0.id == "u-\(stamp)" }) { stamp += 1 }
         let playlist = UserPlaylist(
             id: "u-\(stamp)",
             title: "New playlist \(n)",
