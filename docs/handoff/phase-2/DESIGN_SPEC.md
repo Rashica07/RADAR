@@ -188,7 +188,7 @@ Durations fast 120 ms, base 220, slow 380, burst 380, expand 480. Easings: ease 
 Gutter 16 · row 60 (compact 52) · row art 52 (compact 42) · nav 58 · mini-player 68 (+14 waveform strip) · touch target 44 · radii: art 0, control 2, card 0, pill 999.
 
 ## 13. Two glitch vocabularies — only one is built
-1. **Artifact glitch (RGB split)** — headlines and artwork: two offset copies in mint/coral clipped to bands (`±2/4 px`), animated `slice-a/slice-b` in hard steps; SVG filter bursts `fx-1…3` (R/B channel offsets 2/4/6 px, `feTurbulence` tear) on track change; scanlines (5% black, 3 px pitch) + grain on artwork. **`[NOT DONE]`.**
+1. **Artifact glitch (RGB split)** — headlines and artwork: two offset copies in mint/coral clipped to bands (`±2/4 px`), animated `slice-a/slice-b` in hard steps; SVG filter bursts `fx-1…3` (R/B channel offsets 2/4/6 px, `feTurbulence` tear) on track change; scanlines (5% black, 3 px pitch) + grain on artwork. **Built in Phase 3 Step 3.2 (`RADAR/DesignSystem/FX/`).**
 2. **Brand glitch (speed smear)** — the logo and Glitch icon (this phase). **Done (Swift `[UNVERIFIED]`).**
 
 ## 14. Design decisions and rationale
