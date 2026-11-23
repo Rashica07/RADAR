@@ -1,5 +1,8 @@
 # ARCHITECTURE
 
+> **Update after PR #3 (merged `8372f91`, doc refresh in Phase 3 Step 0):** the repo now has a `@main` app (`RADAR/App`), a temporary Layout Lab, `project.yml` + `Config/*.xcconfig`, and Neon backend code. **Still true: nothing has been compiled or run.** Where this file says otherwise, the update notes below win; the original text is kept as the Phase 2 record.
+
+
 How the pieces built in Phase 2 fit together. Everything here describes **code that exists**; where something is only *intended*, it is labelled `[NOT DONE]`. No Swift in this repo has been compiled (`BUILD_STATUS.md`).
 
 ## 1. Layers (as they exist today)
@@ -98,7 +101,7 @@ Wrappers: `RadarSymbol`, `RadarWordmark`, `RadarLogo` (clean, monochrome-capable
 
 `LaunchSplash(animated:onDone:)` exists and is self-contained: charcoal `LaunchBackground`, lockup sized to `min(0.78 × width, 520)`, runs `RadarLogoReveal`, waits 0.35 s (0.6 s when not animated), fades out over 0.3 s, then calls `onDone`.
 
-**It is not used anywhere.** There is no `@main` app, so nothing presents it. `[NOT DONE]`. The intended wiring (a sketch, **not code in the repo**):
+**Update:** PR #3 wires it — `RADAR/App/RootView.swift` presents `LaunchSplash` over the Layout Lab. The sketch below is the original Phase 2 plan, kept for reference:
 
 ```swift
 @main struct RadarApp: App {
@@ -162,7 +165,7 @@ FeatureFlags (@MainActor @Observable)
 AppIconService.availableChoices / isPickerVisible  ──►  AppIconPickerSection (Settings)
 ```
 
-`FeatureFlags.refresh()` is **never called** by existing code `[NOT DONE]`; it must be invoked at launch and on foreground (throttled to 5 min internally).
+`FeatureFlags.refresh()` is now called by `RootView` at launch and on `scenePhase == .active` (throttled to 5 min internally) `[UNVERIFIED]`. **Backend caveat:** the provider is Supabase REST, but the app's real backend is Neon (`docs/NEON_BACKEND.md`), which has no flags endpoint — a decision is pending.
 
 ## 7. Environment contract (what the app root must inject)
 

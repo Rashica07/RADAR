@@ -1,6 +1,11 @@
 # TESTING
 
-**Bottom line: 0 of 29 XCTest methods have ever run. No Swift code has been compiled.** The only things actually executed in Phase 2 were Node/Python/shell/browser checks, listed in §1. Everything in §2 is *written, not run*.
+> **First build, 2026-11-23 (Phase 3 Step 1) — `[VERIFIED]` on this Mac:** Xcode 27.2, XcodeGen, iPhone 18 Pro simulator (iOS 27.0). `xcodegen generate` → `xcodebuild build` succeeded after **2 compile fixes** (R15-type isolation: `AppIconService.init` default argument evaluated off the main actor; `LocalLibrary.init` closure captured `self` before initialisation). **All 50 tests pass** (incl. `testBandsMatchTheJavaScriptReference`: Swift glitch == JS fixture). Observed in the simulator: splash fades out, fonts and `Theme/` colours resolve (R4 not an issue), logo renders, flag override reveals the icon picker, switching to the Glitch icon shows iOS's confirmation alert and the picker updates. **Not yet checked:** iPhone Duo/iPad layouts, iOS 17 device/simulator, release configuration, performance, accessibility. Risks R1 (`didSet` on `@Observable`) and R2 did not break the build; R1's persistence behaviour is untested.
+
+> **Update after PR #3 (merged `8372f91`, doc refresh in Phase 3 Step 0):** the repo now has a `@main` app (`RADAR/App`), a temporary Layout Lab, `project.yml` + `Config/*.xcconfig`, and Neon backend code. **Still true: nothing has been compiled or run.** Where this file says otherwise, the update notes below win; the original text is kept as the Phase 2 record.
+
+
+**Bottom line: 0 of 50 XCTest methods have ever run (29 Phase 2 + `RadarLayoutTests` 17 + `BackendConfigTests` 4 from PR #3). No Swift code has been compiled.** The only things actually executed in Phase 2 were Node/Python/shell/browser checks, listed in §1. Everything in §2 is *written, not run*.
 
 Tags: `[VERIFIED]` = an executed command produced the cited result · `[UNVERIFIED]` = not executed · `[NOT DONE]`.
 

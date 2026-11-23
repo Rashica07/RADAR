@@ -1,7 +1,13 @@
 # BUILD_STATUS
 
+> **First build, 2026-11-23 (Phase 3 Step 1) — `[VERIFIED]` on this Mac:** Xcode 27.2, XcodeGen, iPhone 18 Pro simulator (iOS 27.0). `xcodegen generate` → `xcodebuild build` succeeded after **2 compile fixes** (R15-type isolation: `AppIconService.init` default argument evaluated off the main actor; `LocalLibrary.init` closure captured `self` before initialisation). **All 50 tests pass** (incl. `testBandsMatchTheJavaScriptReference`: Swift glitch == JS fixture). Observed in the simulator: splash fades out, fonts and `Theme/` colours resolve (R4 not an issue), logo renders, flag override reveals the icon picker, switching to the Glitch icon shows iOS's confirmation alert and the picker updates. **Also verified (Layout Lab, simulators, iOS 27.x):** Release build compiles (`#if DEBUG` gating OK); iPad Pro 13" shows 1032×1324 pt → rail, two-column, two-pane player, 4 grid columns; iPhone Duo **closed** shows a 382×644 pt window with a right safe-area inset of 84 pt (measured, not derived) → bottom bar. **Not yet checked:** Duo unfolded/half-open, iPad resize/multitasking, rotation, an iOS 17 runtime (none installed — only 26.5/27.0/27.1), performance, accessibility. Risks R1 (`didSet` on `@Observable`) and R2 did not break the build; R1's persistence behaviour is untested.
+
+> **Update after PR #3 (merged `8372f91`, doc refresh in Phase 3 Step 0):** the repo now has a `@main` app (`RADAR/App`), a temporary Layout Lab, `project.yml` + `Config/*.xcconfig`, and Neon backend code. **Still true: nothing has been compiled or run.** Where this file says otherwise, the update notes below win; the original text is kept as the Phase 2 record.
+> Preferred path now: **XcodeGen** — `cp Config/Local.xcconfig.example Config/Local.xcconfig`, set bundle id + team, `xcodegen generate`. Steps 2–6 of Path A below are replaced by this. Note `Local.xcconfig` is now included **last** in `Shared.xcconfig` so its values win.
+
+
 ## 1. Current state — one line
-**There is nothing to build.** The repository has no Xcode project, no Swift package manifest, no `@main` entry point and no Info.plist, so no compiler has ever been pointed at this code. Build result: **not attempted**. Test result: **not attempted**.
+**Nothing has ever been built.** *(Updated after PR #3: the repo now has a `@main` app and an XcodeGen spec `project.yml` + `Config/*.xcconfig`, but no generated `.xcodeproj` and no CI; no compiler has ever been pointed at this code.)* Phase 2 originally had no project, `@main` or Info.plist. Build result: **not attempted**. Test result: **not attempted**.
 
 `find` for `*.xcodeproj`, `*.pbxproj`, `Info.plist`, `Package.swift`, `*.xcconfig`, `*.yml`, `README*` returned nothing `[VERIFIED]`. There are no GitHub Actions workflows and PR #1 had 0 check runs `[VERIFIED]`.
 
@@ -60,7 +66,7 @@ Ordered by how likely I think they are to bite.
 6. Add a minimal `@main` app (temporary): a `WindowGroup { VStack { RadarLogoReveal(height: 60) } .background(Color.radarCharcoal) }` so the logo system can be seen.
 7. **File ▸ New ▸ Target ▸ Unit Testing Bundle** `RADARTests`; add `RADARTests/*.swift`, `Support/`, and `Fixtures/*.json` (with *Copy Bundle Resources*).
 8. ⌘B. Work through §4 top to bottom. Commit the project when green.
-9. ⌘U. Expect the 29 tests; investigate any failure (most informative: `testBandsMatchTheJavaScriptReference`).
+9. ⌘U. Expect the 50 tests; investigate any failure (most informative: `testBandsMatchTheJavaScriptReference`).
 10. Run in the simulator: confirm the reveal animation, fonts, and that `AppIconPickerSection` (add it to a temporary view with injected stores) switches to the Glitch icon.
 
 ### Path B — CI on GitHub Actions (no Mac needed, costs minutes)
