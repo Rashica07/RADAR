@@ -16,6 +16,9 @@ struct DesignGalleryView: View {
     @State private var showAbout = false
     @State private var showPicker = false
     @State private var progress = 0.32
+    @State private var player = PlayerStore(
+        queue: DemoCatalog.shared.chart(country: "GLOBAL", window: .week, limit: 6).map(\.track.id),
+        resolve: { DemoCatalog.shared.track($0) })
 
     private let styles = ArtStyle.allCases
 
@@ -147,6 +150,32 @@ struct DesignGalleryView: View {
                 WaveformScrubber(peaks: DemoCatalog.rawWaveform(trackId: "demo"), progress: progress, duration: 214) { progress = $0 }
                 ScrubTimes(progress: progress, duration: 214)
                 WaveformScrubber(peaks: nil, progress: 0, duration: 214, height: 40) { _ in }
+            }
+
+            block("Player core · demo playback") {
+                let catalog = DemoCatalog.shared
+                if let t = player.current {
+                    HStack(spacing: 12) {
+                        ArtworkView(catalog.art(for: t)).frame(width: 56, height: 56)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(t.title).font(RadarFont.ui(16, .semibold)).lineLimit(1)
+                            Text(player.isDemoPlayback ? "Demo playback · no audio" : catalog.artistName(for: t))
+                                .font(RadarFont.body(12, .regular, relativeTo: .caption)).foregroundStyle(Color.radarText2)
+                        }
+                        Spacer()
+                        Text("\(player.queue.index + 1)/\(player.queue.ids.count)").radarReadout()
+                    }
+                }
+                WaveformScrubber(peaks: player.current.map { DemoCatalog.rawWaveform(trackId: $0.id) },
+                                 progress: player.fraction, duration: player.duration, height: 44) { player.seek(fraction: $0) }
+                ScrubTimes(progress: player.fraction, duration: player.duration)
+                HStack(spacing: 8) {
+                    Button("Prev") { player.previous() }.buttonStyle(.radarTag())
+                    Button(player.isPlaying ? "Pause" : "Play") { player.toggle() }.buttonStyle(.radarTag(on: player.isPlaying))
+                    Button("Next") { player.next() }.buttonStyle(.radarTag())
+                    Button("Shuffle") { player.toggleShuffle() }.buttonStyle(.radarTag(on: player.shuffle))
+                    Button("Loop \(player.repeatMode.rawValue)") { player.cycleRepeat() }.buttonStyle(.radarTag(on: player.repeatMode != .off))
+                }
             }
         }
     }

@@ -78,8 +78,8 @@ targets:
         RADARAuthURL: $(RADAR_AUTH_URL)
         RADARAuthOrigin: $(RADAR_AUTH_ORIGIN)
 
-        # Added with the player (Phase 3), not before:
-        #   UIBackgroundModes: [audio]
+        # Local files keep playing with the screen locked (Step 4).
+        UIBackgroundModes: [audio]
     settings:
       base:
         TARGETED_DEVICE_FAMILY: "1,2"

@@ -18,7 +18,7 @@ final class OverlaysTests: XCTestCase {
         let c = ToastCenter(duration: .milliseconds(40))
         c.show("Soon gone")
         XCTAssertNotNil(c.current)
-        try await Task.sleep(for: .milliseconds(200))
+        for _ in 0..<40 where c.current != nil { try await Task.sleep(for: .milliseconds(50)) }   // up to 2 s, so a busy machine can't flake it
         XCTAssertNil(c.current)
     }
 
