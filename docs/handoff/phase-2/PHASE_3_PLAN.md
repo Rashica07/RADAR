@@ -1,5 +1,7 @@
 # PHASE_3_PLAN
 
+> **Updated 2026-11-23:** new platform and device requirements (iOS 17.0 minimum, iOS 27 testing, iPhone Duo, 13″ iPad Air/Pro) change the order of work — read `docs/PLATFORM_REQUIREMENTS.md` §10 first. The plan below still applies otherwise.
+
 Recommended order of work. The guiding rule: **get a compiler in the loop before writing more code**, because ~3,300 lines of Swift are unverified and every new line built on them compounds the risk.
 
 Sizes: S ≈ hours · M ≈ 1–2 days · L ≈ several days. `[NEEDS YOU]` = blocked on your input. Kotlin translation stays **out of scope** until the iOS build is validated (your Phase 02 instruction).
@@ -84,4 +86,4 @@ Project README; build/test instructions that have been *executed*; asset catalog
 | Scope creep into real YouTube/SoundCloud | Brief forbids pretending; keep providers "Demo" until authorised |
 
 ## Suggested first message for the next session
-"Here is my Mac / approve macOS CI. Bundle id is …, min iOS 17. The backend is …. Illustrator SVGs attached. Start at Step 1."
+"Here is my Mac / approve macOS CI. Bundle id is …, min iOS 17 (confirmed), Xcode 27.1+. The backend is …. Illustrator SVGs attached. Start at Step 1."

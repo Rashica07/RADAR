@@ -66,7 +66,7 @@ These block or shape the next phase. Details are in the linked file.
 1. **Illustrator redraw of the logo** — symbol + wordmark as SVG, with layers named `outer`, `signal`, `core`, `leg`, `wordmark` (`DESIGN_SPEC.md` §Logo, `KNOWN_ISSUES.md` #8). My traces are placeholders.
 2. **A way to compile Swift** — your Mac with Xcode, *or* approval to use a macOS GitHub Actions runner (metered; this repo is private) (`BUILD_STATUS.md`).
 3. **Confirm what "the database" is.** You said the database gates the icon feature; I **assumed Supabase** (a connector is attached) and wrote the client for it. Provide the project URL + publishable key, *or* tell me to create the project/table, *or* name a different backend (`FEATURE_FLAGS.md`).
-4. **App identity** — bundle identifier, Apple team, display name, minimum iOS version (I assumed iOS 17.0).
+4. **App identity** — bundle identifier, Apple team, display name, minimum iOS version (iOS 17.0 is now a **confirmed requirement**; build with Xcode 27.1+ — see `docs/PLATFORM_REQUIREMENTS.md`).
 5. **Approve the glitch icon** (seed 7, chosen by me from 6 candidates) or pick another (`DESIGN_SPEC.md`).
 6. **Product decisions** — whether the Settings "Design review controls" (incl. flag overrides) must be stripped from release builds (I recommend yes), and whether demo-data wording stays.
 7. **Reference assets** — the three brand-sheet images you sent exist only in this session's upload folder; they are copied into this zip under `reference/`. Decide whether to commit them (≈2.8 MB) and how to credit/licence them. Also add the OFL licence texts for the three fonts (`KNOWN_ISSUES.md` #14).

@@ -17,7 +17,7 @@
 Even a Linux Swift toolchain would not have helped much: the code imports SwiftUI, UIKit, AVFoundation (iOS APIs), which Linux Swift does not provide.
 
 ## 3. What a first build needs (all `[NOT DONE]`)
-1. An iOS app target named **`RADAR`** (tests use `@testable import RADAR`), deployment target **iOS 17.0** `[ASSUMPTION]`, **Swift language mode 5**.
+1. An iOS app target named **`RADAR`** (tests use `@testable import RADAR`), deployment target **iOS 17.0** (confirmed requirement), built with **Xcode 27.1 or later** (see `docs/PLATFORM_REQUIREMENTS.md`; `project.yml` + `Config/` now exist), **Swift language mode 5**.
 2. A `@main` `App` type (none exists; an app target with no entry point fails to link).
 3. Info.plist keys: `UIAppFonts` (the 10 files in `RadarFont.bundledFiles`), `UILaunchScreen` → colour `LaunchBackground`, `RADARFlagsURL`, `RADARFlagsAnonKey` (from an `.xcconfig`), and — for the player later — `UIBackgroundModes: audio`.
 4. Build settings: `ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon`, `ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = AppIconGlitch`.
