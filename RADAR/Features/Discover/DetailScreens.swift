@@ -46,7 +46,7 @@ struct TrackCollectionScreen: View {
                             Button { play(r.ids, shuffled: true) } label: { Label("Shuffle", systemImage: "shuffle").frame(maxWidth: .infinity) }
                                 .buttonStyle(.bordered)
                         }
-                        .controlSize(.large).disabled(tracks.isEmpty)
+                        .controlSize(.large).tint(Color.radarAccent).disabled(tracks.isEmpty)
                     }
                     .frame(maxWidth: .infinity)
                     .listRowBackground(Color.clear).listRowSeparator(.hidden)
@@ -111,7 +111,7 @@ struct ArtistScreen: View {
                         Text("\(Format.compact(a.listeners)) monthly listeners · \(c.countryName(a.country))").font(.subheadline).foregroundStyle(.secondary)
                         Text(a.bio).font(.callout).multilineTextAlignment(.center)
                         Button { if let f = ids.first { player.play(f, in: ids) } } label: { Label("Play", systemImage: "play.fill").frame(maxWidth: .infinity) }
-                            .buttonStyle(.borderedProminent).controlSize(.large).disabled(ids.isEmpty)
+                            .buttonStyle(.borderedProminent).controlSize(.large).tint(Color.radarAccent).disabled(ids.isEmpty)
                     }
                     .frame(maxWidth: .infinity).listRowBackground(Color.clear).listRowSeparator(.hidden)
                 }

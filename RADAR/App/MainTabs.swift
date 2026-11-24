@@ -8,48 +8,43 @@ struct MainTabs: View {
     @Environment(ToastCenter.self) private var toasts
     @State private var selection = Tab.discover
 
-    enum Tab: Hashable { case discover, trending, search, library }
+    enum Tab: Hashable, CaseIterable {
+        case discover, trending, search, library
+        var title: String {
+            switch self { case .discover: "Discover"; case .trending: "Trending"; case .search: "Search"; case .library: "Library" }
+        }
+        var symbol: String {
+            switch self {
+            case .discover: "dot.radiowaves.left.and.right"
+            case .trending: "chart.line.uptrend.xyaxis"
+            case .search: "magnifyingglass"
+            case .library: "music.note.house"
+            }
+        }
+    }
 
     var body: some View {
-        @Bindable var player = player
-        tabs
-            .tint(Color.radarAccentText)
-            .overlay(alignment: .top) { ToastBanner(center: toasts) }
-            .sheet(isPresented: $player.expanded) { NowPlayingSheet() }
+        ZStack {
+            tabs
+            if player.expanded { NowPlayingScreen().zIndex(5) }
+        }
+        .tint(Color.radarAccentText)
+        .overlay(alignment: .top) { ToastBanner(center: toasts) }
+        .animation(RadarUI.Motion.layer, value: player.expanded)
     }
 
-    @ViewBuilder
+    /// System `TabView` keeps each tab's scroll and stack alive; its bar is hidden and ours is used.
     private var tabs: some View {
-        if #available(iOS 26.1, *) {
-            tabView.tabViewBottomAccessory(isEnabled: player.current != nil) { MiniPlayerBar() }
-        } else {
-            tabView.modifier(LegacyPlayerInset())
-        }
-    }
-
-    private var tabView: some View {
         TabView(selection: $selection) {
-            NavigationStack { DiscoverScreen() }
-                .tabItem { Label("Discover", systemImage: "dot.radiowaves.left.and.right") }.tag(Tab.discover)
-            NavigationStack { TrendingScreen() }
-                .tabItem { Label("Trending", systemImage: "chart.line.uptrend.xyaxis") }.tag(Tab.trending)
-            NavigationStack { SearchScreen() }
-                .tabItem { Label("Search", systemImage: "magnifyingglass") }.tag(Tab.search)
-            NavigationStack { LibraryScreen() }
-                .tabItem { Label("Library", systemImage: "music.note.house") }.tag(Tab.library)
+            NavigationStack { DiscoverScreen() }.toolbar(.hidden, for: .tabBar).tag(Tab.discover)
+            NavigationStack { TrendingScreen() }.toolbar(.hidden, for: .tabBar).tag(Tab.trending)
+            NavigationStack { SearchScreen() }.toolbar(.hidden, for: .tabBar).tag(Tab.search)
+            NavigationStack { LibraryScreen() }.toolbar(.hidden, for: .tabBar).tag(Tab.library)
         }
-    }
-}
-
-/// Before iOS 26: the mini player is pinned above the tab bar.
-private struct LegacyPlayerInset: ViewModifier {
-    @Environment(PlayerStore.self) private var player
-    func body(content: Content) -> some View {
-        content
-        .overlay(alignment: .bottom) {
-            if player.current != nil {
-                MiniPlayerBar().frame(height: 52).background(.bar).overlay(alignment: .top) { Divider() }
-                    .padding(.bottom, 49)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            VStack(spacing: 0) {
+                MiniPlayerBar()
+                RadarTabBar(selection: $selection, title: \.title, symbol: \.symbol)
             }
         }
     }
