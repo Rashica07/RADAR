@@ -20,12 +20,18 @@ struct MiniPlayerBar: View {
                     Button { withAnimation(RadarUI.Motion.layer) { player.expanded = true } } label: {
                         HStack(spacing: 10) {
                             ArtworkView(art).frame(width: 40, height: 40).clipShape(.rect(cornerRadius: 6))
+                                .id(track.id)
+                                .transition(.opacity.combined(with: .scale(scale: 0.97)))
+                            // Only the words travel with the finger; the plate stays and its colour morphs.
                             VStack(alignment: .leading, spacing: 1) {
                                 Text(track.title).font(.system(size: 14, weight: .semibold)).lineLimit(1)
                                 Text(player.isDemoPlayback ? "Demo playback" : catalog.artistName(for: track))
                                     .font(.system(size: 12)).opacity(0.7).lineLimit(1)
                             }
-                            Spacer(minLength: 0)
+                            .offset(x: dragX)
+                            .opacity(1 - min(abs(dragX) / 160, 1))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .clipped()
                         }
                         .contentShape(Rectangle())
                     }
@@ -56,9 +62,6 @@ struct MiniPlayerBar: View {
             .overlay(shape.strokeBorder(RadarUI.Hairline.color(scheme, emphasis: 1.4), lineWidth: 1))
             .highPriorityGesture(swipe)
             .sensoryFeedback(.impact(weight: .light), trigger: skips)
-            // The whole plate travels with the finger, so the song changes as one card.
-            .offset(x: dragX)
-            .opacity(1 - min(abs(dragX) / 300, 0.6))
             .padding(.horizontal, 26).padding(.bottom, 2)
             .animation(RadarUI.Motion.settle, value: track.id)
             .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -88,10 +91,10 @@ extension MiniPlayerBar {
     private func commit(direction: CGFloat, width: CGFloat, action: @escaping () -> Void) {
         skips += 1
         if reduceMotion { action(); withAnimation(.easeOut(duration: 0.15)) { dragX = 0 }; return }
-        withAnimation(.easeIn(duration: 0.16)) { dragX = direction * width } completion: {
+        withAnimation(.easeIn(duration: 0.16)) { dragX = direction * 160 } completion: {
             action()
             var t = Transaction(); t.disablesAnimations = true
-            withTransaction(t) { dragX = -direction * width }
+            withTransaction(t) { dragX = -direction * 160 }
             withAnimation(RadarUI.Motion.page) { dragX = 0 }
         }
     }
