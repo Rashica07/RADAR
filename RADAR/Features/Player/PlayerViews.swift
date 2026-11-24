@@ -9,6 +9,8 @@ struct MiniPlayerBar: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var dragX: CGFloat = 0
     @State private var skips = 0
+    /// Width of the soft edge, as a share of the text area: zero at rest, full once the words are moving.
+    private var edgeFade: CGFloat { 0.16 * min(abs(dragX) / 30, 1) }
 
     var body: some View {
         if let track = player.current {
@@ -29,9 +31,14 @@ struct MiniPlayerBar: View {
                                     .font(.system(size: 12)).opacity(0.7).lineLimit(1)
                             }
                             .offset(x: dragX)
-                            .opacity(1 - min(abs(dragX) / 160, 1))
+                            .blur(radius: min(abs(dragX) / 14, 9))
+                            .opacity(1 - min(abs(dragX) / MiniPlayerBar.textTravel, 1) * 0.85)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .clipped()
+                            // Soft, blurred sides: the words dissolve into the edges instead of being cut off.
+                            .mask(LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black, location: edgeFade),
+                                                         .init(color: .black, location: 1 - edgeFade), .init(color: .clear, location: 1)],
+                                                 startPoint: .leading, endPoint: .trailing))
                         }
                         .contentShape(Rectangle())
                     }
@@ -70,6 +77,9 @@ struct MiniPlayerBar: View {
 }
 
 extension MiniPlayerBar {
+    /// How far the words travel to leave one side (and arrive from the other); about the width of the text area.
+    static let textTravel: CGFloat = 220
+
     /// Drag the plate sideways: left skips to the next track, right to the previous one.
     private var swipe: some Gesture {
         DragGesture(minimumDistance: 14, coordinateSpace: .global)
@@ -91,10 +101,10 @@ extension MiniPlayerBar {
     private func commit(direction: CGFloat, width: CGFloat, action: @escaping () -> Void) {
         skips += 1
         if reduceMotion { action(); withAnimation(.easeOut(duration: 0.15)) { dragX = 0 }; return }
-        withAnimation(.easeIn(duration: 0.16)) { dragX = direction * 160 } completion: {
+        withAnimation(.easeIn(duration: 0.16)) { dragX = direction * Self.textTravel } completion: {
             action()
             var t = Transaction(); t.disablesAnimations = true
-            withTransaction(t) { dragX = -direction * 160 }
+            withTransaction(t) { dragX = -direction * Self.textTravel }
             withAnimation(RadarUI.Motion.page) { dragX = 0 }
         }
     }
