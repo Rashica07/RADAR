@@ -1,9 +1,6 @@
 import SwiftUI
 
-/// Window root: adaptive container → app shell, with the launch splash on top.
-///
-/// The Lab stands in for the real screens until Phase 3. It exists so a first run on iOS 27 can
-/// report real point sizes for every display and prove layout/state behaviour across resizes.
+/// Window root: the tabs, with the launch splash on top.
 struct RootView: View {
     @Environment(SettingsStore.self) private var settings
     @Environment(FeatureFlags.self) private var flags
@@ -17,9 +14,7 @@ struct RootView: View {
         ZStack {
             Color.radarBg.ignoresSafeArea()
 
-            RadarAdaptiveContainer { _ in
-                TabShell()
-            }
+            MainTabs()
 
             if showSplash {
                 LaunchSplash(animated: settings.settings.fx && !reduceMotion) {

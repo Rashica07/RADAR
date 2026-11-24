@@ -8,7 +8,7 @@ final class ToastCenter {
     struct Toast: Identifiable, Equatable {
         let id = UUID()
         let message: String
-        let icon: RadarIconName?
+        let symbol: String?
     }
 
     private(set) var current: Toast?
@@ -23,9 +23,9 @@ final class ToastCenter {
         current = nil
     }
 
-    func show(_ message: String, icon: RadarIconName? = nil) {
+    func show(_ message: String, symbol: String? = nil) {
         dismissTask?.cancel()
-        let toast = Toast(message: message, icon: icon)
+        let toast = Toast(message: message, symbol: symbol)
         current = toast
         dismissTask = Task { [weak self] in
             try? await Task.sleep(for: self?.duration ?? .seconds(2.4))

@@ -16,8 +16,6 @@ struct RadarApp: App {
     @State private var toasts: ToastCenter
     @State private var flags: FeatureFlags
     @State private var icons: AppIconService
-    @State private var probe = LabProbe()
-    @State private var router = AppRouter()
     @State private var player: PlayerStore
     private let nowPlaying: NowPlayingBridge
 
@@ -53,8 +51,6 @@ struct RadarApp: App {
                 .environment(toasts)
                 .environment(flags)
                 .environment(icons)
-                .environment(probe)
-                .environment(router)
                 .environment(player)
                 .preferredColorScheme(settings.settings.theme.colorScheme)
         }

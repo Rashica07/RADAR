@@ -47,20 +47,20 @@ final class DownloadCenter {
         guard active[id] == nil else { return }
         active[id] = Progress(pct: 0, mb: 0, rate: 0)
         Haptics.play(.light)
-        toasts.show("Simulated download started · no file is saved", icon: .download)
+        toasts.show("Simulated download started · no file is saved", symbol: "arrow.down.circle")
         startTicker()
     }
 
     func cancel(_ id: String) {
         guard active.removeValue(forKey: id) != nil else { return }
         Haptics.play(.warning)
-        toasts.show("Download cancelled", icon: .x)
+        toasts.show("Download cancelled", symbol: "xmark")
     }
 
     func remove(_ id: String) {
         done.removeAll { $0 == id }
         Haptics.play(.select)
-        toasts.show("Removed from simulated downloads", icon: .trash)
+        toasts.show("Removed from simulated downloads", symbol: "trash")
     }
 
     func resetAll() {
@@ -101,7 +101,7 @@ final class DownloadCenter {
             done += finished.filter { !done.contains($0) }
             Haptics.play(.success)
             for id in finished {
-                toasts.show("\(catalog.track(id)?.title ?? "Track") · simulated download complete", icon: .check)
+                toasts.show("\(catalog.track(id)?.title ?? "Track") · simulated download complete", symbol: "checkmark")
             }
         }
         return !active.isEmpty
