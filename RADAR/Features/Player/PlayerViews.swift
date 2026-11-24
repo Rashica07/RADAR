@@ -51,7 +51,7 @@ struct MiniPlayerBar: View {
             .foregroundStyle(.white)
             .background(art.palette.tint, in: shape)
             .overlay(shape.strokeBorder(RadarUI.Hairline.color(scheme, emphasis: 1.4), lineWidth: 1))
-            .padding(.horizontal, 14).padding(.bottom, 4)
+            .padding(.horizontal, 26).padding(.bottom, 2)
             .animation(RadarUI.Motion.settle, value: track.id)
             .transition(.move(edge: .bottom).combined(with: .opacity))
         }

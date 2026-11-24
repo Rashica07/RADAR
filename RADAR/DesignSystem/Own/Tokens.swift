@@ -95,9 +95,40 @@ struct ScrubBar: View {
     }
 }
 
-/// The app's tab bar: a rounded plate floating above the bottom edge. The active tab's icon becomes
-/// a mint circle that lifts out of the bar like a bubble; switching tabs rolls the bubble across
-/// on a slightly bouncy spring while the icon swaps. Built from primitives, not the system bar.
+/// The bar and the bubble drawn as one liquid shape: both are blurred together and thresholded, so
+/// where the circle meets the bar the two flow into each other with a smooth neck. `x` is the
+/// bubble's centre; it is animatable, so the bubble rolls and the neck stretches and snaps.
+private struct GooPlate: View, Animatable {
+    var x: CGFloat
+    let barTop: CGFloat
+    let barHeight: CGFloat
+    let bubbleCenterY: CGFloat
+    let bubble: CGFloat
+    let fill: Color
+
+    var animatableData: CGFloat {
+        get { x }
+        set { x = newValue }
+    }
+
+    var body: some View {
+        Canvas { context, size in
+            context.addFilter(.alphaThreshold(min: 0.5, color: fill))
+            context.addFilter(.blur(radius: 9))
+            context.drawLayer { layer in
+                // 14 pt of margin all round so the blur has room and is not clipped.
+                let barRect = CGRect(x: 14, y: barTop, width: size.width - 28, height: barHeight)
+                layer.fill(Path(roundedRect: barRect, cornerRadius: barHeight / 2), with: .color(.black))
+                let r = bubble / 2
+                layer.fill(Path(ellipseIn: CGRect(x: x + 14 - r, y: bubbleCenterY - r, width: bubble, height: bubble)), with: .color(.black))
+            }
+        }
+    }
+}
+
+/// The app's tab bar: a rounded plate floating clear of the bottom and side edges. The active tab's
+/// icon becomes a mint circle that rises out of the bar; bar and circle are one liquid shape, so the
+/// bubble stretches out of the bar and flows across to the next tab on a bouncy spring.
 struct RadarTabBar<Tab: Hashable & CaseIterable>: View where Tab.AllCases: RandomAccessCollection {
     @Binding var selection: Tab
     let title: (Tab) -> String
@@ -107,34 +138,35 @@ struct RadarTabBar<Tab: Hashable & CaseIterable>: View where Tab.AllCases: Rando
     @Environment(\.colorScheme) private var scheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private let barHeight: CGFloat = 62
-    private let bubble: CGFloat = 54
-    private let lift: CGFloat = 22
+    private let barHeight: CGFloat = 64
+    private let bubble: CGFloat = 62
+    private let barTop: CGFloat = 36
+    private let margin: CGFloat = 14
+    private let inset: CGFloat = 14
+    private var bubbleCenterY: CGFloat { barTop + 2 }
+    private var totalHeight: CGFloat { barTop + barHeight + margin }
 
     private var tabs: [Tab] { Array(Tab.allCases) }
     private var index: Int { tabs.firstIndex(of: selection) ?? 0 }
 
     var body: some View {
         GeometryReader { geo in
-            let slot = geo.size.width / CGFloat(max(tabs.count, 1))
+            let inner = geo.size.width - 2 * margin
+            let slot = inner / CGFloat(max(tabs.count, 1))
+            let cx = margin + slot * (CGFloat(index) + 0.5)
             ZStack(alignment: .topLeading) {
-                // The plate.
-                RoundedRectangle(cornerRadius: 31, style: .continuous)
-                    .fill(.bar)
-                    .overlay(RoundedRectangle(cornerRadius: 31, style: .continuous)
-                        .strokeBorder(RadarUI.Hairline.color(scheme, emphasis: 1.4), lineWidth: RadarUI.Hairline.width))
-                    .shadow(color: .black.opacity(0.12), radius: 14, y: 4)
-                    .frame(height: barHeight)
-                    .offset(y: lift)
+                GooPlate(x: cx - margin, barTop: barTop, barHeight: barHeight, bubbleCenterY: bubbleCenterY, bubble: bubble, fill: plate)
+                    .frame(height: totalHeight)
+                    .shadow(color: .black.opacity(scheme == .dark ? 0.35 : 0.14), radius: 16, y: 6)
+                    .allowsHitTesting(false)
 
-                // Slots: inactive tabs show icon + label; the active one leaves room for the bubble.
                 HStack(spacing: 0) {
                     ForEach(Array(tabs.enumerated()), id: \.offset) { i, tab in
                         let on = i == index
                         Button {
                             if on { onReselect(tab) } else { withAnimation(bubbleSpring) { selection = tab } }
                         } label: {
-                            VStack(spacing: 3) {
+                            VStack(spacing: 4) {
                                 Image(systemName: symbol(tab)).font(.system(size: 19, weight: .semibold))
                                     .frame(height: 24).opacity(on ? 0 : 1)
                                 Text(title(tab)).font(.system(size: 10.5, weight: .semibold))
@@ -148,32 +180,31 @@ struct RadarTabBar<Tab: Hashable & CaseIterable>: View where Tab.AllCases: Rando
                         .accessibilityAddTraits(on ? .isSelected : [])
                     }
                 }
-                .offset(y: lift + 6)
+                .padding(.leading, margin).offset(y: barTop)
 
-                // The bubble: a mint circle, ringed in the page colour so it reads as cut out of the bar.
                 Circle()
                     .fill(Color.radarAccent)
-                    .overlay(Circle().strokeBorder(Color.radarBg, lineWidth: 5).padding(-5))
                     .overlay(
                         Image(systemName: symbol(selection))
                             .font(.system(size: 21, weight: .bold))
                             .foregroundStyle(Color.radarOnAccent)
                             .contentTransition(.symbolEffect(.replace))
                     )
-                    .frame(width: bubble, height: bubble)
-                    .shadow(color: Color.radarAccent.opacity(0.35), radius: 10, y: 4)
-                    .offset(x: slot * (CGFloat(index) + 0.5) - bubble / 2, y: 0)
+                    .frame(width: 50, height: 50)
+                    .offset(x: cx - 25, y: bubbleCenterY - 25)
                     .allowsHitTesting(false)
                     .accessibilityHidden(true)
             }
         }
-        .frame(height: barHeight + lift)
-        .padding(.horizontal, 14)
-        .padding(.bottom, 2)
+        .frame(height: totalHeight)
+        .padding(.horizontal, inset)
+        .padding(.bottom, 4)
         .sensoryFeedback(.selection, trigger: selection)
     }
 
+    private var plate: Color { scheme == .dark ? Color(white: 0.17) : Color(white: 0.99) }
+
     private var bubbleSpring: Animation {
-        reduceMotion ? .easeOut(duration: 0.18) : .spring(response: 0.42, dampingFraction: 0.72)
+        reduceMotion ? .easeOut(duration: 0.18) : .spring(response: 0.5, dampingFraction: 0.68)
     }
 }
