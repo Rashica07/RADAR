@@ -50,3 +50,11 @@ final class DismissFeelTests: XCTestCase {
         XCTAssertEqual(SheetDismiss.relativeVelocity(velocity: 500, from: 10, to: 10), 0)
     }
 }
+
+final class TabReselectTests: XCTestCase {
+    func testReselectPopsBeforeScrolling() {
+        XCTAssertEqual(TabReselect.action(pushedCount: 2), .popToRoot)
+        XCTAssertEqual(TabReselect.action(pushedCount: 1), .popToRoot)
+        XCTAssertEqual(TabReselect.action(pushedCount: 0), .scrollToTop)
+    }
+}

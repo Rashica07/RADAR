@@ -7,6 +7,8 @@ struct MainTabs: View {
     @Environment(PlayerStore.self) private var player
     @Environment(ToastCenter.self) private var toasts
     @State private var selection = Tab.discover
+    @State private var paths: [Tab: NavigationPath] = [:]
+    @State private var topTicks: [Tab: Int] = [:]
 
     enum Tab: Hashable, CaseIterable {
         case discover, trending, search, library
@@ -36,16 +38,33 @@ struct MainTabs: View {
     /// System `TabView` keeps each tab's scroll and stack alive; its bar is hidden and ours is used.
     private var tabs: some View {
         TabView(selection: $selection) {
-            NavigationStack { DiscoverScreen() }.toolbar(.hidden, for: .tabBar).tag(Tab.discover)
-            NavigationStack { TrendingScreen() }.toolbar(.hidden, for: .tabBar).tag(Tab.trending)
-            NavigationStack { SearchScreen() }.toolbar(.hidden, for: .tabBar).tag(Tab.search)
-            NavigationStack { LibraryScreen() }.toolbar(.hidden, for: .tabBar).tag(Tab.library)
+            tabStack(.discover) { DiscoverScreen() }
+            tabStack(.trending) { TrendingScreen() }
+            tabStack(.search) { SearchScreen() }
+            tabStack(.library) { LibraryScreen() }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             VStack(spacing: 0) {
                 MiniPlayerBar()
-                RadarTabBar(selection: $selection, title: \.title, symbol: \.symbol)
+                RadarTabBar(selection: $selection, title: \.title, symbol: \.symbol, onReselect: reselect)
             }
+        }
+    }
+}
+
+extension MainTabs {
+    private func tabStack<Root: View>(_ tab: Tab, @ViewBuilder root: () -> Root) -> some View {
+        NavigationStack(path: Binding(get: { paths[tab] ?? NavigationPath() }, set: { paths[tab] = $0 })) { root() }
+            .background(ScrollToTopTrigger(tick: topTicks[tab] ?? 0))
+            .toolbar(.hidden, for: .tabBar)
+            .tag(tab)
+    }
+
+    /// Tapping the active tab: back out of a pushed screen first, otherwise scroll to the top.
+    private func reselect(_ tab: Tab) {
+        switch TabReselect.action(pushedCount: paths[tab]?.count ?? 0) {
+        case .popToRoot: withAnimation(RadarUI.Motion.page) { paths[tab] = NavigationPath() }
+        case .scrollToTop: topTicks[tab, default: 0] += 1
         }
     }
 }
