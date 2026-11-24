@@ -17,17 +17,30 @@ struct RadarApp: App {
     @State private var flags: FeatureFlags
     @State private var icons: AppIconService
     @State private var probe = LabProbe()
+    @State private var router = AppRouter()
+    @State private var player: PlayerStore
+    private let nowPlaying: NowPlayingBridge
 
     init() {
         let catalog = DemoCatalog.shared
         let toasts = ToastCenter()
         _settings = State(initialValue: SettingsStore())
-        _library = State(initialValue: LibraryStore(catalog: catalog))
         _downloads = State(initialValue: DownloadCenter(catalog: catalog, toasts: toasts))
-        _localLibrary = State(initialValue: LocalLibrary())
         _toasts = State(initialValue: toasts)
         _flags = State(initialValue: FeatureFlags())
         _icons = State(initialValue: AppIconService())
+
+        let library = LibraryStore(catalog: catalog)
+        let local = LocalLibrary()
+        _library = State(initialValue: library)
+        _localLibrary = State(initialValue: local)
+        let store = PlayerStore(
+            backend: AVPlayerBackend(),
+            resolve: { catalog.track($0) ?? local.track($0) },
+            localURL: { local.fileURL(for: $0) },
+            onPlayed: { library.addRecent($0) })
+        _player = State(initialValue: store)
+        nowPlaying = NowPlayingBridge(store: store, artist: { catalog.artistName(for: $0) }, art: { catalog.art(for: $0) })
     }
 
     var body: some Scene {
@@ -41,6 +54,8 @@ struct RadarApp: App {
                 .environment(flags)
                 .environment(icons)
                 .environment(probe)
+                .environment(router)
+                .environment(player)
                 .preferredColorScheme(settings.settings.theme.colorScheme)
         }
     }
