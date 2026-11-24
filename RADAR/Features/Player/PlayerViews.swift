@@ -105,7 +105,10 @@ extension MiniPlayerBar {
             action()
             var t = Transaction(); t.disablesAnimations = true
             withTransaction(t) { dragX = -direction * Self.textTravel }
-            withAnimation(RadarUI.Motion.page) { dragX = 0 }
+            // Let that start position be drawn first; animating in the same pass would skip it.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.04) {
+                withAnimation(RadarUI.Motion.page) { dragX = 0 }
+            }
         }
     }
 }
