@@ -95,11 +95,39 @@ struct ScrubBar: View {
     }
 }
 
+/// How the bar floats while the bubble travels: it drifts toward where the circle is going and lifts a
+/// little, then settles as the circle lands. `x` is the bubble's animated position, `to` where it ends.
+enum BarFloat {
+    static func offset(x: CGFloat, to: CGFloat, slot: CGFloat) -> CGSize {
+        let remaining = to - x                       // points still to travel, signed
+        let dx = max(-14, min(14, remaining * 0.16))
+        let dy = -3.5 * min(abs(remaining) / max(slot, 1), 1)
+        return CGSize(width: dx, height: dy)
+    }
+}
+
+/// Moves a view with the bar's float (used for the labels, which sit on the bar).
+private struct BarFloatEffect: GeometryEffect {
+    var x: CGFloat
+    let to: CGFloat
+    let slot: CGFloat
+    let floats: Bool
+    var animatableData: CGFloat { get { x } set { x = newValue } }
+    func effectValue(size: CGSize) -> ProjectionTransform {
+        guard floats else { return ProjectionTransform(.identity) }
+        let o = BarFloat.offset(x: x, to: to, slot: slot)
+        return ProjectionTransform(CGAffineTransform(translationX: o.width, y: o.height))
+    }
+}
+
 /// The bar and the bubble drawn as one liquid shape: both are blurred together and thresholded, so
 /// where the circle meets the bar the two flow into each other with a smooth neck. `x` is the
 /// bubble's centre; it is animatable, so the bubble rolls and the neck stretches and snaps.
 private struct GooPlate: View, Animatable {
     var x: CGFloat
+    let to: CGFloat
+    let slot: CGFloat
+    let floats: Bool
     let barTop: CGFloat
     let barHeight: CGFloat
     let bubbleCenterY: CGFloat
@@ -117,7 +145,8 @@ private struct GooPlate: View, Animatable {
             context.addFilter(.blur(radius: 9))
             context.drawLayer { layer in
                 // 14 pt of margin all round so the blur has room and is not clipped.
-                let barRect = CGRect(x: 14, y: barTop, width: size.width - 28, height: barHeight)
+                let fl = floats ? BarFloat.offset(x: x, to: to, slot: slot) : .zero
+                let barRect = CGRect(x: 14 + fl.width, y: barTop + fl.height, width: size.width - 28, height: barHeight)
                 layer.fill(Path(roundedRect: barRect, cornerRadius: barHeight / 2), with: .color(.black))
                 let r = bubble / 2
                 layer.fill(Path(ellipseIn: CGRect(x: x + 14 - r, y: bubbleCenterY - r, width: bubble, height: bubble)), with: .color(.black))
@@ -155,7 +184,7 @@ struct RadarTabBar<Tab: Hashable & CaseIterable>: View where Tab.AllCases: Rando
             let slot = inner / CGFloat(max(tabs.count, 1))
             let cx = margin + slot * (CGFloat(index) + 0.5)
             ZStack(alignment: .topLeading) {
-                GooPlate(x: cx - margin, barTop: barTop, barHeight: barHeight, bubbleCenterY: bubbleCenterY, bubble: bubble, fill: plate)
+                GooPlate(x: cx - margin, to: cx - margin, slot: slot, floats: !reduceMotion, barTop: barTop, barHeight: barHeight, bubbleCenterY: bubbleCenterY, bubble: bubble, fill: plate)
                     .frame(height: totalHeight)
                     .shadow(color: .black.opacity(scheme == .dark ? 0.35 : 0.14), radius: 16, y: 6)
                     .allowsHitTesting(false)
@@ -181,6 +210,7 @@ struct RadarTabBar<Tab: Hashable & CaseIterable>: View where Tab.AllCases: Rando
                     }
                 }
                 .padding(.leading, margin).offset(y: barTop)
+                .modifier(BarFloatEffect(x: cx, to: cx, slot: slot, floats: !reduceMotion))
 
                 Circle()
                     .fill(Color.radarAccent)
