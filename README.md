@@ -35,7 +35,7 @@ First run: the app opens the temporary **Layout Lab** (`RADAR/Features/Lab/Layou
 
 ```
 RADAR/            app source (Core, Models, Services, DesignSystem, Layout, Features, App, Resources)
-RADARTests/       XCTest (96 tests, all passing) + JSON fixtures
+RADARTests/       XCTest (99 tests, all passing) + JSON fixtures
 Config/           xcconfig (deployment target, device family, icons, flags)
 project.yml       XcodeGen spec
 tools/            generators + tools/check-availability.py (iOS 17 / Duo anti-pattern lint)

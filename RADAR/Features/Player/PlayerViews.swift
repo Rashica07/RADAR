@@ -6,6 +6,9 @@ struct MiniPlayerBar: View {
     @Environment(PlayerStore.self) private var player
     @Environment(LibraryStore.self) private var library
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var dragX: CGFloat = 0
+    @State private var skips = 0
 
     var body: some View {
         if let track = player.current {
@@ -51,10 +54,56 @@ struct MiniPlayerBar: View {
             .foregroundStyle(.white)
             .background(art.palette.tint, in: shape)
             .overlay(shape.strokeBorder(RadarUI.Hairline.color(scheme, emphasis: 1.4), lineWidth: 1))
+            .highPriorityGesture(swipe)
+            .sensoryFeedback(.impact(weight: .light), trigger: skips)
+            // The whole plate travels with the finger, so the song changes as one card.
+            .offset(x: dragX)
+            .opacity(1 - min(abs(dragX) / 300, 0.6))
             .padding(.horizontal, 26).padding(.bottom, 2)
             .animation(RadarUI.Motion.settle, value: track.id)
             .transition(.move(edge: .bottom).combined(with: .opacity))
         }
+    }
+}
+
+extension MiniPlayerBar {
+    /// Drag the plate sideways: left skips to the next track, right to the previous one.
+    private var swipe: some Gesture {
+        DragGesture(minimumDistance: 14, coordinateSpace: .global)
+            .onChanged { v in
+                guard abs(v.translation.width) > abs(v.translation.height) || dragX != 0 else { return }
+                dragX = v.translation.width * 0.8
+            }
+            .onEnded { v in
+                let width = UIScreen.main.bounds.width
+                switch MiniSwipe.decision(translation: v.translation.width, predicted: v.predictedEndTranslation.width) {
+                case .next: commit(direction: -1, width: width) { player.next() }
+                case .previous: commit(direction: 1, width: width) { player.skipBack() }
+                case .none: withAnimation(RadarUI.Motion.settle) { dragX = 0 }
+                }
+            }
+    }
+
+    /// Slide the old song out, swap, slide the new one in from the opposite side.
+    private func commit(direction: CGFloat, width: CGFloat, action: @escaping () -> Void) {
+        skips += 1
+        if reduceMotion { action(); withAnimation(.easeOut(duration: 0.15)) { dragX = 0 }; return }
+        withAnimation(.easeIn(duration: 0.16)) { dragX = direction * width } completion: {
+            action()
+            var t = Transaction(); t.disablesAnimations = true
+            withTransaction(t) { dragX = -direction * width }
+            withAnimation(RadarUI.Motion.page) { dragX = 0 }
+        }
+    }
+}
+
+/// A sideways drag on the mini player skips when it goes far enough or is flicked.
+enum MiniSwipe {
+    enum Decision: Equatable { case next, previous, none }
+    static func decision(translation: CGFloat, predicted: CGFloat) -> Decision {
+        if translation < -70 || (translation < -24 && predicted < -160) { return .next }
+        if translation > 70 || (translation > 24 && predicted > 160) { return .previous }
+        return .none
     }
 }
 

@@ -118,6 +118,12 @@ final class PlayerStore {
         }
     }
 
+    /// Always the previous track (a swipe is deliberate), unlike `previous()` which restarts a song
+    /// that has played for more than three seconds. At the first track it restarts it.
+    func skipBack() {
+        if queue.previous(progress: 0) { startCurrent(autoplay: true) } else { seek(to: 0) }
+    }
+
     func seek(to seconds: TimeInterval) {
         progress = min(max(seconds, 0), duration)
         if usesBackend { backend?.seek(to: progress) }

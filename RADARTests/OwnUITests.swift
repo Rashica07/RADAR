@@ -58,3 +58,19 @@ final class TabReselectTests: XCTestCase {
         XCTAssertEqual(TabReselect.action(pushedCount: 0), .scrollToTop)
     }
 }
+
+final class MiniSwipeTests: XCTestCase {
+    func testDragLeftIsNextAndRightIsPrevious() {
+        XCTAssertEqual(MiniSwipe.decision(translation: -120, predicted: -200), .next)
+        XCTAssertEqual(MiniSwipe.decision(translation: 120, predicted: 200), .previous)
+    }
+    func testFlickCountsEvenWhenShort() {
+        XCTAssertEqual(MiniSwipe.decision(translation: -40, predicted: -300), .next)
+        XCTAssertEqual(MiniSwipe.decision(translation: 40, predicted: 300), .previous)
+    }
+    func testSmallOrSlowDragDoesNothing() {
+        XCTAssertEqual(MiniSwipe.decision(translation: -30, predicted: -60), .none)
+        XCTAssertEqual(MiniSwipe.decision(translation: 10, predicted: 400), .none)
+        XCTAssertEqual(MiniSwipe.decision(translation: 0, predicted: 0), .none)
+    }
+}
