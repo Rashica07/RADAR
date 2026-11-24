@@ -69,6 +69,11 @@ struct NowPlayingScreen: View {
     @State private var closing = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    /// The layer ignores the safe area so it fills the screen while it moves; content is padded back by hand.
+    private static var safeInsets: UIEdgeInsets {
+        (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.keyWindow?.safeAreaInsets ?? .zero
+    }
+
     var body: some View {
         GeometryReader { geo in
             let progress = min(max(pull, 0) / max(geo.size.height, 1), 1)
@@ -100,6 +105,7 @@ struct NowPlayingScreen: View {
                         bottomRow(track)
                     }
                     .padding(.horizontal, 24).padding(.bottom, 12)
+                    .padding(.top, Self.safeInsets.top).padding(.bottom, Self.safeInsets.bottom)
                     .frame(maxWidth: 560)
                 } else {
                     Color.radarBg.ignoresSafeArea()
@@ -125,6 +131,7 @@ struct NowPlayingScreen: View {
             )
             .sensoryFeedback(.impact(weight: .light), trigger: armed)
         }
+        .ignoresSafeArea()
         .sheet(isPresented: $showQueue) { QueueSheet() }
         .transition(.asymmetric(insertion: .move(edge: .bottom), removal: .identity))
     }
