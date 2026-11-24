@@ -41,7 +41,7 @@ struct TrackCollectionScreen: View {
                         ArtworkView(r.art).aspectRatio(1, contentMode: .fit).frame(maxWidth: 260).clipShape(.rect(cornerRadius: 12))
                         Text(r.subtitle).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
                         HStack(spacing: 12) {
-                            Button { play(r.ids, shuffled: false) } label: { Label("Play", systemImage: "play.fill").frame(maxWidth: .infinity) }
+                            Button { play(r.ids, shuffled: false) } label: { Label("Play", systemImage: "play.fill").frame(maxWidth: .infinity).foregroundStyle(Color.radarCharcoal) }
                                 .buttonStyle(.borderedProminent)
                             Button { play(r.ids, shuffled: true) } label: { Label("Shuffle", systemImage: "shuffle").frame(maxWidth: .infinity) }
                                 .buttonStyle(.bordered)
@@ -110,7 +110,7 @@ struct ArtistScreen: View {
                         ArtworkView(c.art(for: a)).aspectRatio(1, contentMode: .fit).frame(maxWidth: 220).clipShape(.circle)
                         Text("\(Format.compact(a.listeners)) monthly listeners · \(c.countryName(a.country))").font(.subheadline).foregroundStyle(.secondary)
                         Text(a.bio).font(.callout).multilineTextAlignment(.center)
-                        Button { if let f = ids.first { player.play(f, in: ids) } } label: { Label("Play", systemImage: "play.fill").frame(maxWidth: .infinity) }
+                        Button { if let f = ids.first { player.play(f, in: ids) } } label: { Label("Play", systemImage: "play.fill").frame(maxWidth: .infinity).foregroundStyle(Color.radarCharcoal) }
                             .buttonStyle(.borderedProminent).controlSize(.large).tint(Color.radarAccent).disabled(ids.isEmpty)
                     }
                     .frame(maxWidth: .infinity).listRowBackground(Color.clear).listRowSeparator(.hidden)
