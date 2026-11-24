@@ -75,20 +75,18 @@ final class MiniSwipeTests: XCTestCase {
     }
 }
 
-final class BarFloatTests: XCTestCase {
-    func testBarDriftsTowardWhereTheCircleIsGoingAndLifts() {
-        let o = BarFloat.offset(x: 100, to: 200, slot: 90)       // circle still has 100 pt to go to the right
-        XCTAssertGreaterThan(o.width, 0)
-        XCTAssertLessThan(o.height, 0)
-        let back = BarFloat.offset(x: 300, to: 200, slot: 90)    // travelling left
-        XCTAssertLessThan(back.width, 0)
+final class WooshTests: XCTestCase {
+    func testTailTrailsBehindAndShrinksAsItLands() {
+        let far = Woosh.tail(x: 100, to: 300)
+        let near = Woosh.tail(x: 280, to: 300)
+        XCTAssertEqual(far.direction, 1)
+        XCTAssertGreaterThan(far.length, near.length)
+        XCTAssertEqual(Woosh.tail(x: 300, to: 100).direction, -1)
     }
-    func testBarSettlesWhenTheCircleLands() {
-        let o = BarFloat.offset(x: 200, to: 200, slot: 90)
-        XCTAssertEqual(o.width, 0); XCTAssertEqual(o.height, 0)
+    func testNoTailOnceLanded() {
+        XCTAssertEqual(Woosh.tail(x: 200, to: 200), Woosh.Tail(length: 0, direction: 0))
     }
-    func testFloatIsCapped() {
-        let o = BarFloat.offset(x: -5000, to: 5000, slot: 90)
-        XCTAssertLessThanOrEqual(o.width, 14); XCTAssertGreaterThanOrEqual(o.height, -3.5)
+    func testTailIsCapped() {
+        XCTAssertLessThanOrEqual(Woosh.tail(x: -9000, to: 9000).length, 120)
     }
 }

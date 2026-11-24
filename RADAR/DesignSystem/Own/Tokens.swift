@@ -95,28 +95,13 @@ struct ScrubBar: View {
     }
 }
 
-/// How the bar floats while the bubble travels: it drifts toward where the circle is going and lifts a
-/// little, then settles as the circle lands. `x` is the bubble's animated position, `to` where it ends.
-enum BarFloat {
-    static func offset(x: CGFloat, to: CGFloat, slot: CGFloat) -> CGSize {
-        let remaining = to - x                       // points still to travel, signed
-        let dx = max(-14, min(14, remaining * 0.16))
-        let dy = -3.5 * min(abs(remaining) / max(slot, 1), 1)
-        return CGSize(width: dx, height: dy)
-    }
-}
-
-/// Moves a view with the bar's float (used for the labels, which sit on the bar).
-private struct BarFloatEffect: GeometryEffect {
-    var x: CGFloat
-    let to: CGFloat
-    let slot: CGFloat
-    let floats: Bool
-    var animatableData: CGFloat { get { x } set { x = newValue } }
-    func effectValue(size: CGSize) -> ProjectionTransform {
-        guard floats else { return ProjectionTransform(.identity) }
-        let o = BarFloat.offset(x: x, to: to, slot: slot)
-        return ProjectionTransform(CGAffineTransform(translationX: o.width, y: o.height))
+/// The woosh: while the bubble travels it drags a stretching tail of liquid behind it, which shrinks
+/// as it lands. `x` is the bubble's animated position, `to` where it ends.
+enum Woosh {
+    struct Tail: Equatable { var length: CGFloat; var direction: CGFloat }   // direction: +1 travelling right
+    static func tail(x: CGFloat, to: CGFloat) -> Tail {
+        let remaining = to - x
+        return Tail(length: min(abs(remaining) * 0.75, 120), direction: remaining == 0 ? 0 : (remaining > 0 ? 1 : -1))
     }
 }
 
@@ -126,8 +111,6 @@ private struct BarFloatEffect: GeometryEffect {
 private struct GooPlate: View, Animatable {
     var x: CGFloat
     let to: CGFloat
-    let slot: CGFloat
-    let floats: Bool
     let barTop: CGFloat
     let barHeight: CGFloat
     let bubbleCenterY: CGFloat
@@ -145,10 +128,19 @@ private struct GooPlate: View, Animatable {
             context.addFilter(.blur(radius: 9))
             context.drawLayer { layer in
                 // 14 pt of margin all round so the blur has room and is not clipped.
-                let fl = floats ? BarFloat.offset(x: x, to: to, slot: slot) : .zero
-                let barRect = CGRect(x: 14 + fl.width, y: barTop + fl.height, width: size.width - 28, height: barHeight)
+                let barRect = CGRect(x: 14, y: barTop, width: size.width - 28, height: barHeight)
                 layer.fill(Path(roundedRect: barRect, cornerRadius: barHeight / 2), with: .color(.black))
                 let r = bubble / 2
+                let tail = Woosh.tail(x: x, to: to)
+                // Tail: a stretched capsule trailing behind the bubble, thinner than the bubble so it reads as a smear.
+                if tail.length > 1 {
+                    let tailX = tail.direction > 0 ? x + 14 - tail.length : x + 14
+                    let h = bubble * 0.64
+                    layer.fill(Path(roundedRect: CGRect(x: tailX, y: bubbleCenterY + 2 - h / 2, width: tail.length, height: h), cornerRadius: h / 2), with: .color(.black))
+                }
+                // Hill: the bump on the bar's top edge that rides under the bubble, widening while it moves.
+                let hillW = 64 + tail.length * 0.5
+                layer.fill(Path(ellipseIn: CGRect(x: x + 14 - hillW / 2, y: barTop - 10, width: hillW, height: 34)), with: .color(.black))
                 layer.fill(Path(ellipseIn: CGRect(x: x + 14 - r, y: bubbleCenterY - r, width: bubble, height: bubble)), with: .color(.black))
             }
         }
@@ -184,7 +176,7 @@ struct RadarTabBar<Tab: Hashable & CaseIterable>: View where Tab.AllCases: Rando
             let slot = inner / CGFloat(max(tabs.count, 1))
             let cx = margin + slot * (CGFloat(index) + 0.5)
             ZStack(alignment: .topLeading) {
-                GooPlate(x: cx - margin, to: cx - margin, slot: slot, floats: !reduceMotion, barTop: barTop, barHeight: barHeight, bubbleCenterY: bubbleCenterY, bubble: bubble, fill: plate)
+                GooPlate(x: cx - margin, to: cx - margin, barTop: barTop, barHeight: barHeight, bubbleCenterY: bubbleCenterY, bubble: bubble, fill: plate)
                     .frame(height: totalHeight)
                     .shadow(color: .black.opacity(scheme == .dark ? 0.35 : 0.14), radius: 16, y: 6)
                     .allowsHitTesting(false)
@@ -210,7 +202,6 @@ struct RadarTabBar<Tab: Hashable & CaseIterable>: View where Tab.AllCases: Rando
                     }
                 }
                 .padding(.leading, margin).offset(y: barTop)
-                .modifier(BarFloatEffect(x: cx, to: cx, slot: slot, floats: !reduceMotion))
 
                 Circle()
                     .fill(Color.radarAccent)
