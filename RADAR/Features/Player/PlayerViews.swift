@@ -65,10 +65,16 @@ struct NowPlayingScreen: View {
     @State private var scrubbing: Double?
     @State private var pull: CGFloat = 0
     @State private var showQueue = false
+    @State private var armed = false
+    @State private var closing = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         GeometryReader { geo in
+            let progress = min(max(pull, 0) / max(geo.size.height, 1), 1)
             ZStack {
+                Color.radarBg.ignoresSafeArea()
+                ZStack {
                 if let track = player.current {
                     let catalog = DemoCatalog.shared
                     let art = catalog.art(for: track)
@@ -98,28 +104,58 @@ struct NowPlayingScreen: View {
                 } else {
                     Color.radarBg.ignoresSafeArea()
                 }
+                }
+                .frame(maxWidth: .infinity)
+                .foregroundStyle(.white)
+                .environment(\.colorScheme, .dark)
             }
-            .frame(maxWidth: .infinity)
-            .foregroundStyle(.white)
-            .environment(\.colorScheme, .dark)
-            .offset(y: max(pull, 0))
+            // The whole layer moves, background included, so the tabs show through as it leaves.
+            .clipShape(.rect(cornerRadius: min(progress * 400, 36), style: .continuous))
+            .scaleEffect(1 - progress * 0.06, anchor: .bottom)
+            .offset(y: SheetDismiss.follow(pull))
             .gesture(
-                DragGesture(minimumDistance: 14)
-                    .onChanged { v in if v.translation.height > 0, abs(v.translation.height) > abs(v.translation.width) { pull = v.translation.height } }
-                    .onEnded { v in
-                        if SheetDismiss.shouldDismiss(translation: v.translation.height, predicted: v.predictedEndTranslation.height, height: geo.size.height) {
-                            close()
-                        } else { withAnimation(RadarUI.Motion.settle) { pull = 0 } }
+                DragGesture(minimumDistance: 8)
+                    .onChanged { v in
+                        guard !closing, abs(v.translation.height) > abs(v.translation.width) || pull != 0 else { return }
+                        pull = v.translation.height
+                        let past = SheetDismiss.shouldDismiss(translation: pull, predicted: pull, height: geo.size.height)
+                        if past != armed { armed = past }
                     }
+                    .onEnded { v in release(v, height: geo.size.height) }
             )
+            .sensoryFeedback(.impact(weight: .light), trigger: armed)
         }
-        .background(Color.radarBg.ignoresSafeArea())
         .sheet(isPresented: $showQueue) { QueueSheet() }
-        .transition(.move(edge: .bottom))
+        .transition(.asymmetric(insertion: .move(edge: .bottom), removal: .identity))
+    }
+
+    /// Release: carry the finger's speed into the spring, either off the screen or back to rest.
+    private func release(_ v: DragGesture.Value, height: CGFloat) {
+        let dismiss = SheetDismiss.shouldDismiss(translation: v.translation.height, predicted: v.predictedEndTranslation.height, height: height)
+        let target: CGFloat = dismiss ? height : 0
+        let velocity = SheetDismiss.relativeVelocity(velocity: v.velocity.height, from: pull, to: target)
+        let animation: Animation = reduceMotion
+            ? .easeOut(duration: 0.18)
+            : .interpolatingSpring(mass: 1, stiffness: 160, damping: 26, initialVelocity: velocity)
+        if dismiss {
+            closing = true
+            withAnimation(animation, completionCriteria: .logicallyComplete) { pull = height } completion: {
+                var t = Transaction(); t.disablesAnimations = true
+                withTransaction(t) { player.expanded = false; pull = 0; closing = false }
+            }
+        } else {
+            withAnimation(animation) { pull = 0 }
+        }
     }
 
     private func close() {
-        withAnimation(RadarUI.Motion.layer) { player.expanded = false; pull = 0 }
+        guard !closing else { return }
+        closing = true
+        let h = UIScreen.main.bounds.height
+        withAnimation(reduceMotion ? .easeOut(duration: 0.18) : .spring(response: 0.4, dampingFraction: 1), completionCriteria: .logicallyComplete) { pull = h } completion: {
+            var t = Transaction(); t.disablesAnimations = true
+            withTransaction(t) { player.expanded = false; pull = 0; closing = false }
+        }
     }
 
     private func topBar(_ track: Track) -> some View {
@@ -228,6 +264,23 @@ enum SheetDismiss {
     static func shouldDismiss(translation: CGFloat, predicted: CGFloat, height: CGFloat) -> Bool {
         guard translation > 0 else { return false }
         return translation > height * 0.25 || (translation > 40 && predicted > height * 0.45)
+    }
+
+    /// Finger movement to layer movement: 1:1 downwards, resisted upwards (nothing to reveal there).
+    static func follow(_ pull: CGFloat) -> CGFloat {
+        guard pull < 0 else { return pull }
+        let limit: CGFloat = 60
+        return -(limit * -pull / (limit + -pull))
+    }
+
+    /// `initialVelocity` for `interpolatingSpring` is in "distances per second": the finger's speed
+    /// divided by how far the layer still has to travel. Only speed towards the target counts, and it
+    /// is capped so a wild flick can't make the spring overshoot the screen.
+    static func relativeVelocity(velocity: CGFloat, from: CGFloat, to: CGFloat) -> Double {
+        let distance = to - from
+        guard abs(distance) > 1 else { return 0 }
+        let v = Double(velocity / distance)
+        return min(max(v, 0), 12)
     }
 }
 
